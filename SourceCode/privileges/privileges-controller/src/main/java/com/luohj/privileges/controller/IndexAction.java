@@ -18,7 +18,7 @@ public class IndexAction extends AbstractController {
 	@RequestMapping("/test")
 	@ResponseBody
 	public String test(HttpSession session, HttpServletRequest request) {
-		logger.debug("进入：test方法");
+		logger.debug("杩涘叆INDEX ACTION");
 		return "SUCCESS";
 	}
 }

@@ -4,10 +4,10 @@
   name="privileges-web"
   id="myeclipse.1441294461336"
   context-root="/privileges-web"
-  j2ee-spec="5.0"
+  j2ee-spec="6.0"
   archive="privileges-web.war">
   <attributes>
-    <attribute name="webrootdir" value="&lt;prjroot&gt;" />
+    <attribute name="webrootdir" value="src/main/webapp" />
   </attributes>
 </project-module>
 

@@ -1,6 +1,4 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
-<%@ page import="com.eshore.crm.api.sysmgr.model.WebSysstaffBean" %>
-<%@ include file="/inc/crminc/crmHeadInc.jsp" %>
 <%
 	String path = request.getContextPath();
 	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
@@ -9,7 +7,6 @@
 	String cityId = (String)session.getAttribute("cityId");  
 	String casPath=(String)session.getAttribute("casPath");
 	String loginOutPath=casPath+basePath;
-	WebSysstaffBean staffBean = (WebSysstaffBean)session.getAttribute("staff"); 
 	System.out.println("postId="+postId+",staffId="+staffId+",cityId="+cityId);
 %>
 

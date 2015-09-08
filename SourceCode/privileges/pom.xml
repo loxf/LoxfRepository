@@ -26,7 +26,7 @@
 		<dom4j.version>1.6.1</dom4j.version>
 		
 		<!-- Plugin的属性-->
-		<java.version>1.7</java.version>
+		<java.version>1.6</java.version>
 		<pagehelper.version>3.4.1.1</pagehelper.version>
 		<kryo.version>3.0.0</kryo.version>
 		<fst.version>1.58</fst.version>

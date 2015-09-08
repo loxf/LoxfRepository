@@ -9,16 +9,14 @@
   <artifactId>privileges-web</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
+  <build>
+  <finalName>privileges-web</finalName>
+  </build>
   <dependencies>
   	<dependency>
   		<groupId>com.luohj</groupId>
   		<artifactId>privileges-controller</artifactId>
   		<version>0.0.1-SNAPSHOT</version>
-  		<type>jar</type>
-  		<scope>compile</scope>
   	</dependency>
   </dependencies>
-  <build>
-  	<finalName>privileges-web</finalName>
-  </build>
 </project>

@@ -8,7 +8,7 @@
                <th valign="top" width="25%">请输入原密码：</th>
                <td>
                    <input type="password" id="pwd" name="pwd"/>
-                   <em id="pwdEm"><img src="<%=basePath%>skin/default/images/common/public/right.png"></em>
+                   <em id="pwdEm"><img src="/skin/default/images/common/public/right.png"></em>
                    <p id="pwdErrPanel">代理商第一次登录，请改密码</p>
                </td>
            </tr>
@@ -34,7 +34,7 @@
                <th valign="top">请确认新密码：</th>
                <td>
                    <input type="password" id="pwd_second" name="pwd_second"/>
-                   <em id="pwdSecondEm"><img src="<%=basePath%>skin/default/images/common/public/right.png"></em>
+                   <em id="pwdSecondEm"><img src="/skin/default/images/common/public/right.png"></em>
                    <p id="newPwdInfoPanel"></p>
                </td>
            </tr>

@@ -4,7 +4,6 @@
 	<%@ page isErrorPage="true"%>
 <html>
 	<head>
-		<%@include file="crm_common_inc.jsp"%>
 	</head>
 	<body class="message_page_body">
 		<div class="main-wrap">

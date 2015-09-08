@@ -3,7 +3,6 @@
 	<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
 <html>
 	<head>
-		<%@include file="crm_common_inc.jsp"%>
 	</head>
 	<body class="message_page_body">
 

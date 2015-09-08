@@ -1,7 +1,6 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
 <html>
 	<head>
-		<%@include file="/inc/crminc/crmHeadInc.jsp"%>
 		<link href="${contextPath}/skin/default/css/sysmgr/index/indexBanner.css"
 			rel="stylesheet" type="text/css" />
 	</head>
