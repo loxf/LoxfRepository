@@ -4,13 +4,18 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 @Controller
 public class AbstractController {
+	protected HttpServletRequest request;
+	protected HttpServletResponse response;
+	protected HttpSession session;
 	/**
 	 * 拦截请求异常
 	 * 
@@ -33,5 +38,13 @@ public class AbstractController {
 			response.sendRedirect(request.getContextPath()
 					+ "/common/view/500.jsp");
 		}
+	}
+
+	@ModelAttribute
+	public void initController(HttpServletRequest request,
+			HttpServletResponse response) {
+		this.request = request;
+		this.response = response;
+		this.session = request.getSession();
 	}
 }

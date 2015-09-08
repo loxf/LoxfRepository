@@ -75,7 +75,7 @@ public class Privilege extends BaseBean {
 			String[] s = uri.split("\\/");
 			if(s==null||s.length!=3){
 				throw new BusiRuntimeException("E0001",
-						"当前请求非法，请求形式必须是:context + XXX1/XXX2/XXX3");
+						"当前请求非法，请求形式必须是:context + XXX1/XXX2/XXX3，当前URL：" + uri);
 			}else{
 				module = s[0];
 				childModule = s[1];

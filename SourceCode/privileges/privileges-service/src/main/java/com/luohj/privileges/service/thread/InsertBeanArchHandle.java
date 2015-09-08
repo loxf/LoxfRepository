@@ -62,8 +62,8 @@ public class InsertBeanArchHandle implements Runnable {
 			} else {
 				try {
 					Thread.sleep(getSleepTime());
-					logger.info("线程队列为空，线程[" + Thread.currentThread().getName()
-							+ "]休眠[" + getSleepTime() + "ms]");
+//					logger.info("线程队列为空，线程[" + Thread.currentThread().getName()
+//							+ "]休眠[" + getSleepTime() + "ms]");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
