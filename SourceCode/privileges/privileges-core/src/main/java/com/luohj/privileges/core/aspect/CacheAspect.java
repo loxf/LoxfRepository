@@ -1,6 +1,15 @@
+/**
+ * Title: CacheRefresh.java
+ * Copyright: Loxf
+ * Company: Loxf Team
+ * @author: luohj
+ * @version: 1.0
+ * @time:  2015-9-2 下午2:26:47
+ */
 package com.luohj.privileges.core.aspect;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -15,6 +24,7 @@ import org.springframework.stereotype.Component;
 import com.luohj.privileges.core.cache.impl.CacheContext;
 import com.luohj.privileges.core.exception.BusiRuntimeException;
 import com.luohj.privileges.core.model.BaseBean;
+import com.luohj.privileges.core.tags.CacheRefresh;
 import com.luohj.privileges.core.tags.Cacheable;
 
 /**
@@ -41,91 +51,8 @@ public class CacheAspect {
 			throws Exception {
 		try {
 			Object[] args = joinPoint.getArgs();
-			String key = rl.key();
-			if (key.contains("#")) {
-				if (key.contains(".")) {
-					String[] tmpArr = key.split("\\.");
-					if (tmpArr.length == 2) {
-						String tmp = tmpArr[0].substring(1);
-						int loc = 0;
-						if (tmp != null) {
-							try {
-								loc = Integer.parseInt(tmp);
-							} catch (Exception ex) {
-								throw new BusiRuntimeException(
-										"E00002",
-										"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
-												+ "如：#1.userId代表入参的第一个参数内的userId，或者#1，代表入参的第一个参数。");
-							}
-						}
-						String temp = tmpArr[1];
-						if (args[loc - 1] instanceof BaseBean) {
-							BaseBean bean = (BaseBean) args[loc - 1];
-							Field[] field = bean.getClass().getDeclaredFields();
-							for (int j = 0; j < field.length; j++) { // 遍历所有属性
-								String name = field[j].getName(); // 获取属性的名字
-								if (name.equals(temp)) {
-									name = name.substring(0, 1).toUpperCase()
-											+ name.substring(1); // 将属性的首字符大写，方便构造get，set方法
-									Method m = bean.getClass().getMethod(
-											"get" + name);
-									Object result = (Object) m.invoke(bean); // 调用getter方法获取属性值
-									if(result!=null)
-										key = String.valueOf(result);
-									else
-										key = null;
-									break;
-								}
-							}
-						} else if (args[loc - 1] instanceof Map) {
-							Method m = args[loc - 1].getClass().getMethod(
-									"get", Object.class);
-							key = (String) m.invoke(args[loc - 1], tmpArr[1]);// 调用getter方法获取属性值
-						} else {
-							String name = temp.substring(0, 1).toUpperCase()
-									+ temp.substring(1); // 将属性的首字符大写，方便构造get，set方法
-							Method m = args[loc - 1].getClass().getMethod(
-									"get" + name);
-							Object result = (Object) m.invoke(args[loc - 1]); // 调用getter方法获取属性值
-							if(result!=null)
-								key = String.valueOf(result);
-							else
-								key = null;
-						}
-					} else {
-						throw new BusiRuntimeException(
-								"E00003",
-								"Cacheable注解使用#bean.xxx开头的表达式取入参对象的属性时，只能取一个深度的属性。"
-										+ "如：#1.userId，代表入参的第一个参数内的userId。不能适用#1.xxx.yyy之类的更多的深度");
-					}
-				} else {
-					if (key.length() < 2) {
-						throw new BusiRuntimeException(
-								"E00002",
-								"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
-										+ "如：#1.userId，代表入参的第一个参数内的userId，或者#1，代表入参的第一个参数。");
-					}
-					String tmp = key.substring(1);
-					if (tmp != null) {
-						int loc = 0;
-						try {
-							loc = Integer.parseInt(tmp);
-						} catch (Exception ex) {
-							throw new BusiRuntimeException(
-									"E00002",
-									"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
-											+ "如：#1.userId代表入参的第一个参数内的userId，或者#1，代表入参的第一个参数。");
-						}
-						try {
-							key = (String) args[loc - 1];
-						} catch (Exception ex) {
-							throw new BusiRuntimeException("E00003",
-									"Cacheable注解使用#开头的表达式，未找到对应的入参。");
-
-						}
-					}
-				}
-			}
+			String key = getKey(args, rl.key());
+			
 			// 根据key从缓存中获取值
 			Object obj = cacheContext.get(key);
 			if (obj == null) {
@@ -145,5 +72,115 @@ public class CacheAspect {
 		} catch (Exception e) {
 			throw e;
 		}
+	}
+	
+	@Around("within(com.luohj.privileges..*) && @annotation(rl)")
+	public String cacherefresh(ProceedingJoinPoint joinPoint, CacheRefresh rl)
+			throws Exception {
+		try {
+			Object[] args = joinPoint.getArgs();
+			String key = getKey(args, rl.key());
+			
+			try {
+				joinPoint.proceed();
+				cacheContext.addOrUpdateCache(key, null);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return key;
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	public String getKey(Object[] args, String key) throws SecurityException,
+			NoSuchMethodException, IllegalArgumentException,
+			IllegalAccessException, InvocationTargetException {
+		if (key.contains("#")) {
+			if (key.contains(".")) {
+				String[] tmpArr = key.split("\\.");
+				if (tmpArr.length == 2) {
+					String tmp = tmpArr[0].substring(1);
+					int loc = 0;
+					if (tmp != null) {
+						try {
+							loc = Integer.parseInt(tmp);
+						} catch (Exception ex) {
+							throw new BusiRuntimeException(
+									"E00002",
+									"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
+											+ "如：#1.userId代表入参的第一个参数内的userId，或者#1，代表入参的第一个参数。");
+						}
+					}
+					String temp = tmpArr[1];
+					if (args[loc - 1] instanceof BaseBean) {
+						BaseBean bean = (BaseBean) args[loc - 1];
+						Field[] field = bean.getClass().getDeclaredFields();
+						for (int j = 0; j < field.length; j++) { // 遍历所有属性
+							String name = field[j].getName(); // 获取属性的名字
+							if (name.equals(temp)) {
+								name = name.substring(0, 1).toUpperCase()
+										+ name.substring(1); // 将属性的首字符大写，方便构造get，set方法
+								Method m = bean.getClass().getMethod(
+										"get" + name);
+								Object result = (Object) m.invoke(bean); // 调用getter方法获取属性值
+								if (result != null)
+									key = String.valueOf(result);
+								else
+									key = null;
+								break;
+							}
+						}
+					} else if (args[loc - 1] instanceof Map) {
+						Method m = args[loc - 1].getClass().getMethod("get",
+								Object.class);
+						key = (String) m.invoke(args[loc - 1], tmpArr[1]);// 调用getter方法获取属性值
+					} else {
+						String name = temp.substring(0, 1).toUpperCase()
+								+ temp.substring(1); // 将属性的首字符大写，方便构造get，set方法
+						Method m = args[loc - 1].getClass().getMethod(
+								"get" + name);
+						Object result = (Object) m.invoke(args[loc - 1]); // 调用getter方法获取属性值
+						if (result != null)
+							key = String.valueOf(result);
+						else
+							key = null;
+					}
+				} else {
+					throw new BusiRuntimeException(
+							"E00003",
+							"Cacheable注解使用#bean.xxx开头的表达式取入参对象的属性时，只能取一个深度的属性。"
+									+ "如：#1.userId，代表入参的第一个参数内的userId。不能适用#1.xxx.yyy之类的更多的深度");
+				}
+			} else {
+				if (key.length() < 2) {
+					throw new BusiRuntimeException(
+							"E00002",
+							"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
+									+ "如：#1.userId，代表入参的第一个参数内的userId，或者#1，代表入参的第一个参数。");
+				}
+				String tmp = key.substring(1);
+				if (tmp != null) {
+					int loc = 0;
+					try {
+						loc = Integer.parseInt(tmp);
+					} catch (Exception ex) {
+						throw new BusiRuntimeException(
+								"E00002",
+								"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
+										+ "如：#1.userId代表入参的第一个参数内的userId，或者#1，代表入参的第一个参数。");
+					}
+					try {
+						key = (String) args[loc - 1];
+					} catch (Exception ex) {
+						throw new BusiRuntimeException("E00003",
+								"Cacheable注解使用#开头的表达式，未找到对应的入参。");
+
+					}
+				}
+			}
+		}
+		return key;
 	}
 }

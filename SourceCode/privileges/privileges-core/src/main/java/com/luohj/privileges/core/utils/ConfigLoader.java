@@ -8,10 +8,12 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
+@SuppressWarnings("rawtypes")
 public class ConfigLoader extends PropertyPlaceholderConfigurer {
 	private static Map ctxPropertiesMap;
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void processProperties(
 			ConfigurableListableBeanFactory beanFactoryToProcess,
 			Properties props) throws BeansException {
