@@ -17,6 +17,12 @@ import com.luohj.privileges.core.control.AbstractController;
 @RequestMapping("/system/login")
 public class LoginController extends AbstractController {
 
+	/**
+	 * TODO:获取登录验证码
+	 * 
+	 * @throws IOException
+	 * @author:luohj
+	 */
 	@RequestMapping("/getIdentifyCode")
 	public void getIdentifyCode() throws IOException {
 		// 设置不缓存图片
@@ -44,5 +50,15 @@ public class LoginController extends AbstractController {
 		g.dispose();
 		session.setAttribute("IdentifyCode", identifyStr);
 		ImageIO.write(image, "JPEG", response.getOutputStream());
+	}
+	
+	/**
+	 * TODO:登录
+	 * 
+	 * @return
+	 * @author:ouxin
+	 */
+	public String login(){
+		return null;
 	}
 }
