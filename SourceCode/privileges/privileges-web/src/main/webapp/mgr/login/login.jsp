@@ -75,6 +75,7 @@
 								</a>
 						</div>
 						<p class="tip" >忘记密码</p>
+						<!-- ouxin 完成这儿  -->
 						<a href="javascript:void(0)" class="btn-login" id="loginBnt">登 录</a>
 						<br/>
 						<a href="javascript:void(0)" class="btn-regist" id="registBnt">注册</a>
