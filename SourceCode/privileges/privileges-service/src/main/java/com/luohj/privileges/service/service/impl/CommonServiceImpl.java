@@ -10,6 +10,8 @@ package com.luohj.privileges.service.service.impl;
 
 import javax.annotation.Resource;
 
+import org.springframework.stereotype.Service;
+
 import com.luohj.privileges.core.model.BaseBean;
 import com.luohj.privileges.core.service.impl.AbstractBaseService;
 import com.luohj.privileges.dao.ICommonDao;
@@ -18,6 +20,7 @@ import com.luohj.privileges.service.service.ICommonService;
 /**
  * @author luohj
  */
+@Service("commonService")
 public class CommonServiceImpl extends AbstractBaseService implements ICommonService {
 
 	@Resource

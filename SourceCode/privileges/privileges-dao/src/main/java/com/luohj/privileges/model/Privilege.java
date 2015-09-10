@@ -25,12 +25,12 @@ public class Privilege extends BaseBean {
 	/**
 	 * 权限编码
 	 */
-	@Column(value="PRIVILEGE", id=true)
+	@Column("PRIVILEGE")
 	private String privilege;
 	/**
 	 * 权限Id
 	 */
-	@Column("PRIVILEGE_ID")
+	@Column(value="PRIVILEGE_ID", id=true)
 	private Long privilegeId;
 	/**
 	 * 请求URL

@@ -5,9 +5,8 @@
 <sqlMap namespace="common">
 	<insert id="insertBean"  parameterClass="java.util.Map" >
 		$sql$
-		
 		<selectKey resultClass="java.lang.Long" keyProperty="id">
-			SELECT last_insert_rowid() as $id$ ;    
+			SELECT last_insert_rowid() as id ;
         </selectKey>
 	</insert>
 	
