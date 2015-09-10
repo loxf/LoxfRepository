@@ -6,5 +6,7 @@ import com.luohj.privileges.core.dao.IBaseDao;
 import com.luohj.privileges.model.User;
 
 public interface IUserDao extends IBaseDao {
-	public User getUser(User user);
+	User getUser(User user);
+
+	Long insertUser(User user);
 }

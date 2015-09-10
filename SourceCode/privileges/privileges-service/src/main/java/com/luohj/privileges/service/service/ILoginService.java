@@ -1,5 +1,10 @@
 package com.luohj.privileges.service.service;
 
-public interface ILoginService {
+import com.luohj.privileges.core.service.IBaseService;
+
+/**
+ * @author luohj
+ */
+public interface ILoginService extends IBaseService {
 
 }

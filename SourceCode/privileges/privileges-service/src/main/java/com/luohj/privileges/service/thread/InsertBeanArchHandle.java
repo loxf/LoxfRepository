@@ -11,6 +11,7 @@ import com.luohj.privileges.core.queue.BeanQueue;
 import com.luohj.privileges.core.utils.ApplicationContextUtil;
 import com.luohj.privileges.core.utils.ConfigLoader;
 import com.luohj.privileges.dao.ICommonDao;
+import com.luohj.privileges.service.service.ICommonService;
 
 /**
  * 功能说明:
@@ -27,14 +28,13 @@ public class InsertBeanArchHandle implements Runnable {
 	private static Logger logger = Logger.getLogger(InsertBeanArchHandle.class);
 	private static final Integer SLEEP_TIME_DEFAULT_VAL = 2000; // 线程默认休眠时间
 	@Resource
-	private ICommonDao commonDao;
+	private ICommonService commonService;
 
 	public InsertBeanArchHandle() {
-		if (commonDao == null) {
+		if (commonService == null) {
 			synchronized(InsertBeanArchHandle.class){
-				if (commonDao == null) {
-					ApplicationContext ac = ApplicationContextUtil.getContext();
-					commonDao = ApplicationContextUtil.getBean("commonDao");
+				if (commonService == null) {
+					commonService = ApplicationContextUtil.getBean("commonService");
 				}
 			}
 		}
@@ -49,8 +49,8 @@ public class InsertBeanArchHandle implements Runnable {
 					continue;
 				}
 				try {
-					if(!commonDao.isExistsBean(beanBean)){
-						commonDao.insertBean(beanBean);
+					if(!commonService.isExistsBean(beanBean)){
+						commonService.insertBean(beanBean);
 					}
 				} catch (BusiRuntimeException ex) {
 					logger.error(ex.getMessage());

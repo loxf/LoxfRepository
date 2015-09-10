@@ -11,11 +11,12 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
+import com.luohj.privileges.core.tags.Cacheable;
 import com.luohj.privileges.dao.IPrivilegeDao;
-import com.luohj.privileges.dao.IUserDao;
 import com.luohj.privileges.model.Module;
 import com.luohj.privileges.model.Privilege;
 import com.luohj.privileges.model.User;
+import com.luohj.privileges.service.service.IUserService;
 import com.luohj.privileges.service.utils.InsertBeanUtil;
 
 /**
@@ -38,7 +39,7 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 	private List<String> passUrl;
 	
 	@Resource
-	private IUserDao userDao;
+	private IUserService userService;
 	@Resource
 	private IPrivilegeDao privilegeDao;
 
@@ -79,10 +80,18 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 					String tempPriviId = isExistsPrivilegeItem(privi);
 					if (tempPriviId==null||tempPriviId.equals("")) {
 						// 否，检查用户是否有此权限项权限（依靠模块）
-						Module mod = new Module();
-						mod.setModule(privi.getModule());
-						mod.setModuleType("1");//主模块
-						insertModule(mod);
+							Module mod = new Module();
+							mod.setModule(privi.getModule());
+							mod.setModuleType("1");//主模块
+							insertModule(mod);
+							
+							Module mod1 = new Module();
+							mod1.setModule(privi.getChildModule());
+							mod1.setModuleType("0");//子模块			
+							mod1.setParModule(privi.getModule());
+							insertModule(mod1);
+							
+							insertPrivilege(privi);
 						
 						return hasPrivilege(user, privi, false);
 					} else {
@@ -105,26 +114,7 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 		if(handler instanceof HandlerMethod){
 			HandlerMethod method = (HandlerMethod)handler;
 			if(method.getMethod()!=null){
-				// 成功执行后，检查当前权限项是否存在，不存在则插入数据库
-				String requestUri = request.getRequestURI();
-				String contextPath = request.getContextPath();
-				String url = requestUri.substring(contextPath.length());
-				Privilege privi = new Privilege(url);
-				String tempPriviId = isExistsPrivilegeItem(privi);
-				if (tempPriviId==null||tempPriviId.equals("")) {
-					Module mod = new Module();
-					mod.setModule(privi.getModule());
-					mod.setModuleType("1");//主模块
-					insertModule(mod);
-					
-					Module mod1 = new Module();
-					mod1.setModule(privi.getChildModule());
-					mod1.setModuleType("0");//子模块			
-					mod1.setParModule(privi.getModule());
-					insertModule(mod1);
-					
-					insertPrivilege(privi);
-				}
+				System.out.println("----------postHandle-----------");
 			}
 		} 
 	}
@@ -133,11 +123,11 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 	public void afterCompletion(HttpServletRequest request,
 			HttpServletResponse response, Object handler, Exception ex)
 			throws Exception {
-		System.out.println("---------------------");
 		if(handler instanceof HandlerMethod){
 			HandlerMethod method = (HandlerMethod)handler;
 			if(method.getMethod()!=null){
 				// 日志统计请求执行记录
+				System.out.println("----------afterCompletion-----------");
 			}
 		}
 	}
@@ -191,10 +181,11 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 	 * @param userId
 	 * @return
 	 */
+	@Cacheable(key="#1")
 	private User getUserInfo(String userId) {
 		User ur = new User();
 		ur.setUserId(Long.valueOf(userId));
-		User user = userDao.getUser(ur);
+		User user = userService.getUser(ur);
 		return user;
 	}
 

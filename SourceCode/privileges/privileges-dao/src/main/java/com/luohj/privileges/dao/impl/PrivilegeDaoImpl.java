@@ -3,7 +3,7 @@ package com.luohj.privileges.dao.impl;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
-import com.luohj.privileges.core.dao.impl.BaseDao;
+import com.luohj.privileges.core.dao.impl.AbstractBaseDao;
 import com.luohj.privileges.dao.IPrivilegeDao;
 import com.luohj.privileges.model.Module;
 import com.luohj.privileges.model.Privilege;
@@ -21,7 +21,7 @@ import com.luohj.privileges.model.User;
  * 
  */
 @Repository("privilegeDao")
-public class PrivilegeDaoImpl extends BaseDao implements IPrivilegeDao {
+public class PrivilegeDaoImpl extends AbstractBaseDao implements IPrivilegeDao {
 	private static Logger logger = Logger.getLogger(CommonDaoImpl.class);
 
 	public PrivilegeDaoImpl(){

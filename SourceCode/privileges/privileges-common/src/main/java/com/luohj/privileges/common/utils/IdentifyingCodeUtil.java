@@ -131,7 +131,6 @@ public class IdentifyingCodeUtil {
             trans.scale(scaleSize, scaleSize) ;  
             g.setTransform(trans) ;  
             g.drawString(temp, 15*i+18, 14) ;  
-            g.drawString("KKKK", 15*i+18, 14) ;  
               
             strbuf.append(temp) ;  
         }  
