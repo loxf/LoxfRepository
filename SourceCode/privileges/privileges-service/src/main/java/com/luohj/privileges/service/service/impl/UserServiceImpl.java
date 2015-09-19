@@ -13,6 +13,7 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import com.luohj.privileges.core.service.impl.AbstractBaseService;
+import com.luohj.privileges.core.tags.Cacheable;
 import com.luohj.privileges.dao.IUserDao;
 import com.luohj.privileges.model.User;
 import com.luohj.privileges.service.service.IUserService;
@@ -38,6 +39,7 @@ public class UserServiceImpl extends AbstractBaseService implements
 	/** (non-Javadoc)
 	 * @see com.luohj.privileges.service.service.IUserService#getUser(com.luohj.privileges.model.User)
 	 */
+	@Cacheable(key="#1.userId")
 	@Override
 	public User getUser(User user) {
 		return userDao.getUser(user);

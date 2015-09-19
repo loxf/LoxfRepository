@@ -66,10 +66,10 @@
 							&nbsp;账户 <input type="text" name="userName" id="userid" />
 						</div>
 						<div class="input">
-							&nbsp;密码 <input type="password" name="pwd" id="password" />
+							&nbsp;密码 <input type="password" name="userPassword" id="password" />
 						</div>
 						<div class="test expand expand-sms">
-							<input name="sms" type="text" id="sms" /> <a id="getsms"
+							<input name="identifyCode" type="text" id="sms" /> <a id="getsms"
 								href="javascript:void(0)" onclick="getsmsinfo()">
 								<img id="checkCode" src=""/>
 								</a>

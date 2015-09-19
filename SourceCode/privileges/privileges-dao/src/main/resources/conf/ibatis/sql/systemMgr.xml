@@ -4,6 +4,16 @@
     "http://ibatis.apache.org/dtd/sql-map-2.dtd">
 <sqlMap namespace="systemMgr">
 	<!-- 获取用户信息 -->
+	<select id="login" resultClass="com.luohj.privileges.model.User"
+		parameterClass="com.luohj.privileges.model.User">
+	  <![CDATA[ 
+    	  select user_id userId ,user_name userName,
+    	  		strftime('%Y-%m-%d %H:%M:%S',create_date) createDate
+    	  	from tb_user where user_name=#userName# and user_password = #userPassword#  
+  	  ]]>
+	</select>
+	
+	<!-- 获取用户信息 -->
 	<select id="getUser" resultClass="com.luohj.privileges.model.User"
 		parameterClass="java.lang.Long">
 	  <![CDATA[ 
@@ -50,7 +60,7 @@
     	   privilege_Id = #privilegeId#    
    	  	</isNotEmpty>
    	  	<isNotEmpty prepend="AND" property="privilege">
-    	   privilege_Id = #privilege#
+    	   privilege = #privilege#
    	  	</isNotEmpty>
    	  </dynamic>   
 	</select>
@@ -89,7 +99,7 @@
 				and (
 				    (a.[obj_id]=c.[group_id] and a.[obj_type]='GR' 
 				    	and c.[group_id] = d.[group_id] and e.[user_id]=d.[user_id]
-				    	and d.status_cd = 100)    
+				    	and d.status_cd = 1000)    
 				    or    
 				    (a.[obj_id]= e.[user_id] and a.[obj_type]='UR')
 				    )    
@@ -139,21 +149,11 @@
 	
 	<!-- 当前权限项是否有权限实例数据 -->
 	<select id="getPrivilegeRoleCnt" resultClass="java.lang.String"
-		parameterClass="java.util.Map">
+		parameterClass="com.luohj.privileges.model.Privilege">
 	  <![CDATA[ 
-    	 select 1 from tb_privilege_user_relation where 1=1
-  	  ]]>
-  	  <dynamic>
-   	  	<isNotEmpty prepend="AND" property="privilegeId">
+    	 select 1 from tb_privilege_user_relation where 
     	   privilege_id = #privilegeId# 
-   	  	</isNotEmpty>
-   	  	<isNotEmpty prepend="AND" property="privilege">
-    	   privilege = #privilege#    
-   	  	</isNotEmpty>
-   	  	<isNotEmpty prepend="AND" property="url">
-    	   url = #url#    
-   	  	</isNotEmpty>
-   	  </dynamic> 
+  	  ]]>
 	</select>
 	
 </sqlMap>

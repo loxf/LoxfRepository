@@ -8,7 +8,7 @@ import com.luohj.privileges.dao.IUserDao;
 import com.luohj.privileges.model.User;
 
 @Repository("userDao")
-public class UserDaoImpl extends AbstractBaseDao implements IUserDao  {
+public class UserDaoImpl extends AbstractBaseDao implements IUserDao {
 	private static Logger logger = Logger.getLogger(UserDaoImpl.class);
 
 	public UserDaoImpl(){
@@ -27,6 +27,12 @@ public class UserDaoImpl extends AbstractBaseDao implements IUserDao  {
 	@Override
 	public Long insertUser(User user) {
 		return insertBean(user);
+	}
+
+	@Override
+	public User login(User ur){
+		User user = (User)getSqlClient().queryForObject("systemMgr.login",ur);
+		return user;
 	}
 
 }

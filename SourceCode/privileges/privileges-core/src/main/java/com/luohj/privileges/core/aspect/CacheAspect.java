@@ -75,20 +75,24 @@ public class CacheAspect {
 	}
 	
 	@Around("within(com.luohj.privileges..*) && @annotation(rl)")
-	public String cacherefresh(ProceedingJoinPoint joinPoint, CacheRefresh rl)
+	public Object cacherefresh(ProceedingJoinPoint joinPoint, CacheRefresh rl)
 			throws Exception {
 		try {
-			Object[] args = joinPoint.getArgs();
-			String key = getKey(args, rl.key());
-			
+			Object ret = null;
 			try {
-				joinPoint.proceed();
-				cacheContext.addOrUpdateCache(key, null);
+				ret = joinPoint.proceed();
 			} catch (Throwable e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			return key;
+			Object[] args = joinPoint.getArgs();
+			String key = getKey(args, rl.key());
+			if(key!=null&&!"".equals(key)){
+				cacheContext.addOrUpdateCache(key, null);
+			}else{
+				throw new BusiRuntimeException("W0000","刷新缓存失败，key["+ rl.key()+"]不存在");
+			}
+			return ret;
 		} catch (Exception e) {
 			throw e;
 		}
@@ -107,6 +111,7 @@ public class CacheAspect {
 						try {
 							loc = Integer.parseInt(tmp);
 						} catch (Exception ex) {
+							key = null;
 							throw new BusiRuntimeException(
 									"E00002",
 									"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
@@ -148,6 +153,7 @@ public class CacheAspect {
 							key = null;
 					}
 				} else {
+					key = null;
 					throw new BusiRuntimeException(
 							"E00003",
 							"Cacheable注解使用#bean.xxx开头的表达式取入参对象的属性时，只能取一个深度的属性。"
@@ -155,6 +161,7 @@ public class CacheAspect {
 				}
 			} else {
 				if (key.length() < 2) {
+					key = null;
 					throw new BusiRuntimeException(
 							"E00002",
 							"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
@@ -166,6 +173,7 @@ public class CacheAspect {
 					try {
 						loc = Integer.parseInt(tmp);
 					} catch (Exception ex) {
+						key = null;
 						throw new BusiRuntimeException(
 								"E00002",
 								"Cacheable注解value值形式只能是值本身或者#开头的表达式！"
@@ -174,6 +182,7 @@ public class CacheAspect {
 					try {
 						key = (String) args[loc - 1];
 					} catch (Exception ex) {
+						key = null;
 						throw new BusiRuntimeException("E00003",
 								"Cacheable注解使用#开头的表达式，未找到对应的入参。");
 

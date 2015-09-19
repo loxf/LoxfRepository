@@ -1,72 +1,41 @@
-﻿var positionData=null;
-var loginObj={
+﻿var loginObj={
 	/** 页面元素的展示控制 */
 	hideExpand:function(){
-		$(".tag").height(275);
+		// $(".tag").height(275);
 	},
 	/** 登录 */
 	login:function(){
-		var loginName=$("#userid").val();
-		var loginPwd=$("#password").val();
-		var sms=$('#sms').val();
-		
-	    if(loginName!=''&&loginPwd!=''&&loginArea==null&&positionSelect==null){//获取岗位
-			if(accTypeMark=='1')
+		var param = $("#loginForm").serialize();
+		var url = contextPath + "system/login/login";
+		$.ajax({
+			type : 'POST',
+			url : url,
+			data : param,
+			dataType : "json",
+			success: function(data)
 			{
-				if(sms=='')
-				{
-					Showbo.Msg.alert("请输入短信码！",'warn');
+				if(data.resCode=="1000"){
+					var obj = dealResultData(data);
+				} else {
+					alert(data.resMsg);
+					getsmsinfo();
 				}
-				else
-				{
-				   this.getPosition(loginName,loginPwd);
-				}
-			}
-			else
-			{
-			   this.goToMain(loginName,loginPwd);
-			}
-		}
-		else if(loginName!=''&&loginPwd!=''&&loginArea!=null&&positionSelect!=null){
-			this.goToMain(loginName,loginPwd);
-		}else{
-			Showbo.Msg.alert("输入的信息不完整！",'error');
-		}
-	},
-	/** 登录，转主页 */
-	goToMain:function(loginName,loginPwd){
-		$('#loginForm').attr('action', contextPath + 'sysmgr/login.action');
+			},
+	        error: function(){
+	        	alert('内部错误！');
+				getsmsinfo();
+	        }
+		});
 
-		// 跳转页面
-		$('#loginForm').attr('target', '_self');
-		$('#loginForm').submit();
-		// 设置参数
-		$('#userid, #password').val('');
-		$('#loginBnt').attr('disabled', 'disabled');
-		$('#cancelBnt').hide();
-	},
-	
-	/** 取消 */
-	cancel:function(){
-		$("#userid").val("");
-		$("#password").val("");
-		$("#userid").focus();
-		$('#userid').prop('disabled',false);
-		$('#password').prop('disabled',false);
 	}
+	
 };
 
 $(document).ready(function(e) {
 	/** 获取验证码 */
 	getsmsinfo();
 	
-	/** 页面元素的展示控制 */
 	loginObj.hideExpand();
-	
-	/** 绑定取消登录事件 */
-	$("#cancelBnt").click(function(){
-		loginObj.cancel();
-	});
 	
 	/** 绑定登录按钮回车登录事件 */
 	$("#loginBnt").click(function(){
@@ -99,12 +68,11 @@ $(document).ready(function(e) {
 
 /**
  * 获取校验码
- * */
+ */
 function getsmsinfo()
 {
-	$("#checkCode").attr(
-			"src",
-			contextPath + "system/login/getIdentifyCode?nocache="
+	$("#checkCode").attr("src",
+			contextPath + "/system/login/getIdentifyCode?nocache="
 					+ new Date().getTime());  
 }
 
@@ -118,3 +86,27 @@ function popwin(){
 	});
 }
 
+/**
+ * @param data
+ * @returns
+ */
+function dealResultData(data){
+	if(data.view!=null){
+		$.ajax({
+			type : 'POST',
+			url : contextPath + data.view.url,
+			data : data.obj,
+			success: function(data)
+			{
+				//console.log("登录成功，页面跳转成功！");
+			}
+		});
+		return 1;
+	} else {
+		if(data.obj!=null){
+			return data.obj;
+		}else{
+			return null;
+		}
+	}
+}

@@ -27,9 +27,11 @@ public class User extends BaseBean {
 	@Column("USER_NAME")
 	private String userName;
 	@Column("USER_PASSWORD")
-	private String userPasswor;
+	private String userPassword;
 	@Column("CREATE_DATE")
 	private String createDate;
+	
+	private String identifyCode ;
 
 	public Long getUserId() {
 		return userId;
@@ -47,12 +49,12 @@ public class User extends BaseBean {
 		this.userName = userName;
 	}
 
-	public String getUserPasswor() {
-		return userPasswor;
+	public String getUserPassword() {
+		return userPassword;
 	}
 
-	public void setUserPasswor(String userPasswor) {
-		this.userPasswor = userPasswor;
+	public void setUserPassword(String userPassword) {
+		this.userPassword = userPassword;
 	}
 
 	public String getCreateDate() {
@@ -61,5 +63,13 @@ public class User extends BaseBean {
 
 	public void setCreateDate(String createDate) {
 		this.createDate = createDate;
+	}
+
+	public String getIdentifyCode() {
+		return identifyCode;
+	}
+
+	public void setIdentifyCode(String identifyCode) {
+		this.identifyCode = identifyCode;
 	}
 }

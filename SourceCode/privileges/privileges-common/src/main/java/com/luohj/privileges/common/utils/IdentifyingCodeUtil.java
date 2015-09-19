@@ -83,37 +83,37 @@ public class IdentifyingCodeUtil {
            case 2:  
                itmp = random.nextInt(26) + 97 ;  
                temp = String.valueOf((char)itmp);  
-           case 3:     //生成汉字  
-               String[] rBase = {"0" , "1" , "2" , "3" , "4" , "5" , "6" , "7" ,   
-                       "8" , "9" , "a" , "b" , "c" , "d" , "e" , "f" };  
-               int r1 = random.nextInt(3)+11 ;     //生成第1位的区码  
-               String strR1 = rBase[r1] ;      //生成11～14的随机数  
-               int r2 ;        //生成第2位的区码  
-               if(r1 == 13)  
-                   r2 = random.nextInt(7) ;    //生成0～7的随机数  
-               else  
-                   r2 = random.nextInt(16) ;   //生成0～16的随机数  
-               String strR2 = rBase[r2] ;  
-               int r3 = random.nextInt(6) + 10 ;   //生成第1位的位码  
-               String strR3 = rBase[r3] ;  
-               int r4 ;        //生成第2位的位码  
-               if(r3 == 10)  
-                   r4 = random.nextInt(15) + 1;    //生成1～16的随机数  
-               else if(r3 == 15)  
-                   r4 = random.nextInt(15) ;       //生成0～15的随机数  
-               else  
-                   r4 = random.nextInt(16) ;       //生成0～16的随机数  
-               String strR4 = rBase[r4] ;  
-                //将生成的机内码转换成数字  
-                byte[] bytes = new byte[2]   ;        
-                String strR12 = strR1 + strR2 ;     //将生成的区码保存到字节数组的第1个元素中  
-                int tempLow = Integer.parseInt(strR12, 16) ;  
-                bytes[0] = (byte)tempLow;  
-                String strR34 = strR3 + strR4 ;     //将生成的区码保存到字节数组的第2个元素中  
-                int tempHigh = Integer.parseInt(strR34, 16) ;  
-                bytes[1] = (byte)tempHigh;  
-                temp = new String(bytes);           //根据字节数组生成汉字  
-                break;  
+//           case 3:     //生成汉字  
+//               String[] rBase = {"0" , "1" , "2" , "3" , "4" , "5" , "6" , "7" ,   
+//                       "8" , "9" , "a" , "b" , "c" , "d" , "e" , "f" };  
+//               int r1 = random.nextInt(3)+11 ;     //生成第1位的区码  
+//               String strR1 = rBase[r1] ;      //生成11～14的随机数  
+//               int r2 ;        //生成第2位的区码  
+//               if(r1 == 13)  
+//                   r2 = random.nextInt(7) ;    //生成0～7的随机数  
+//               else  
+//                   r2 = random.nextInt(16) ;   //生成0～16的随机数  
+//               String strR2 = rBase[r2] ;  
+//               int r3 = random.nextInt(6) + 10 ;   //生成第1位的位码  
+//               String strR3 = rBase[r3] ;  
+//               int r4 ;        //生成第2位的位码  
+//               if(r3 == 10)  
+//                   r4 = random.nextInt(15) + 1;    //生成1～16的随机数  
+//               else if(r3 == 15)  
+//                   r4 = random.nextInt(15) ;       //生成0～15的随机数  
+//               else  
+//                   r4 = random.nextInt(16) ;       //生成0～16的随机数  
+//               String strR4 = rBase[r4] ;  
+//                //将生成的机内码转换成数字  
+//                byte[] bytes = new byte[2]   ;        
+//                String strR12 = strR1 + strR2 ;     //将生成的区码保存到字节数组的第1个元素中  
+//                int tempLow = Integer.parseInt(strR12, 16) ;  
+//                bytes[0] = (byte)tempLow;  
+//                String strR34 = strR3 + strR4 ;     //将生成的区码保存到字节数组的第2个元素中  
+//                int tempHigh = Integer.parseInt(strR34, 16) ;  
+//                bytes[1] = (byte)tempHigh;  
+//                temp = new String(bytes);           //根据字节数组生成汉字  
+//                break;  
             default:  
                 itmp = random.nextInt(10) + 48 ;  
                 temp = String.valueOf((char)itmp) ;  

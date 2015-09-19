@@ -11,6 +11,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
+import com.luohj.privileges.common.constants.SystemConstant;
 import com.luohj.privileges.core.tags.Cacheable;
 import com.luohj.privileges.dao.IPrivilegeDao;
 import com.luohj.privileges.model.Module;
@@ -61,18 +62,18 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 			}
 			String requestUri = request.getRequestURI();
 			String contextPath = request.getContextPath();
-			String url = requestUri.substring(contextPath.length());
+			String url = dealUrl(requestUri.substring(contextPath.length()));
 			log.info("url:" + url);
-			if(!passUrl.contains(url)){
-				String userId = (String) request.getSession().getAttribute("userId");
-				userId = "1";
+			if (!passUrl.contains(url)) {
+				Long userId = (Long) request.getSession().getAttribute(
+						SystemConstant.USERID);
 				if (userId == null) {
 					return false;
 				}
 				User user = getUserInfo(userId);
 				if (user == null) {
 					log.info("Interceptor：跳转到login页面！");
-					request.getRequestDispatcher("/views/login/login.jsp").forward(
+					request.getRequestDispatcher("/mgr/login/login.jsp").forward(
 							request, response);
 					return false;
 				} else {
@@ -97,6 +98,7 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 						return hasPrivilege(user, privi, false);
 					} else {
 						// 是，则检查用户是否有此权限项权限
+						privi.setPrivilegeId(Long.valueOf(tempPriviId));
 						return hasPrivilege(user, privi, true);
 					}
 				}
@@ -182,12 +184,27 @@ public class PrivilegesInterceptor extends HandlerInterceptorAdapter {
 	 * @param userId
 	 * @return
 	 */
-	@Cacheable(key="#1")
-	private User getUserInfo(String userId) {
+	private User getUserInfo(Long userId) {
 		User ur = new User();
 		ur.setUserId(Long.valueOf(userId));
 		User user = userService.getUser(ur);
 		return user;
+	}
+	
+	/**
+	 * TODO:处理URL，去掉重复的/
+	 * @param url
+	 * @return
+	 * @author:luohj
+	 */
+	@SuppressWarnings("unused")
+	private String dealUrl(String url){
+		if(url.indexOf("//")>-1){
+			url = url.replaceAll("//", "/");
+			return dealUrl(url);
+		}else {
+			return url;
+		}
 	}
 
 }
