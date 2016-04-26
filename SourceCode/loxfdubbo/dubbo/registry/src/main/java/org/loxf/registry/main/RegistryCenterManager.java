@@ -14,7 +14,7 @@ import org.loxf.registry.queue.IssuedQueue;
 import org.loxf.registry.thread.PushServicesThread;
 
 /**
- * 注册中心管理中心
+ * 注册中心管理中心 默认管理端口20880
  * @author luohj
  *
  */
@@ -32,9 +32,7 @@ public class RegistryCenterManager implements IRegistryCenterManager {
     public RegistryCenterManager(int port){
     	this.port = port;
     	this.center = new RegistryContainers();
-    	if(this.aliveClients==null){
-    		aliveClients = new HashMap<String, AliveClient>();
-    	}
+		this.aliveClients = new HashMap<String, AliveClient>();
     }
 
     public void start() {
@@ -127,10 +125,6 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 		service.setChanged(true);
 		center.registryService(service);
 	}
-	
-	public static void main(String [] args){
-		
-	}
 
 	/**
 	 * TODO:服务端/消费端存活队列（有心跳）
@@ -168,6 +162,11 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	 */
 	public Map<String, Service> getServices() {
 		return this.center.getServices();
+	}
+	
+	public static void main(String [] args){
+		RegistryCenterManager mgr = new RegistryCenterManager(20880);
+		mgr.start();
 	}
 
 }

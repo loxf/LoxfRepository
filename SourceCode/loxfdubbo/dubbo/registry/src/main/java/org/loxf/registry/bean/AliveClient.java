@@ -17,6 +17,7 @@ public class AliveClient extends BaseBean {
 	private String ip;
 	private int port;
 	private String appName;
+	private long timeout;
 	/**
 	 * 类型：客户端CUST，服务端SERV
 	 */
@@ -90,6 +91,20 @@ public class AliveClient extends BaseBean {
 	 */
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	/**
+	 * @return the timeout
+	 */
+	public long getTimeout() {
+		return timeout;
+	}
+
+	/**
+	 * @param timeout the timeout to set
+	 */
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
 	}
 
 }

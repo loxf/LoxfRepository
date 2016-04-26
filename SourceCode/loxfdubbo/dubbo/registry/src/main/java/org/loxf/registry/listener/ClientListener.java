@@ -8,15 +8,17 @@ package org.loxf.registry.listener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.main.ClientManager;
 import org.loxf.registry.queue.IssuedQueue;
 
 /**
  * 客户端监听
- * 用于获取注册中心推送的服务列表
+ * 用于获取注册中心推送的服务列表 默认端口30001
  * @author luohj
  *
  */
@@ -26,9 +28,15 @@ public class ClientListener {
 	private int maxConnection = 1000 ;
 	private int port;
 	
-	public ClientListener(ClientManager clientMgr, int port) throws IOException{
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+	public ClientListener(ClientManager clientMgr, AliveClient client) throws IOException{
 		this.clientMgr = clientMgr;
-		this.port = port;
+		this.port = client.getPort();
 		openListen();
 	}
 	/**
@@ -42,8 +50,15 @@ public class ClientListener {
 			throw new IllegalArgumentException("Invalid port " + port);
 		if (server == null) {
 			synchronized (RpcListener.class) {
-				if (server == null) {
-					server = new ServerSocket(port, maxConnection);
+				while(true){
+					try{
+						server = new ServerSocket(port, maxConnection);
+						break;
+					} catch (BindException e){
+						port++;
+						if (port <= 0 || port > 65535)
+							throw new IllegalArgumentException("Invalid port " + port);
+					}
 				}
 			}
 		}

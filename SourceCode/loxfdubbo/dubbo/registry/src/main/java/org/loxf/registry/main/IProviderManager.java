@@ -5,6 +5,7 @@
  */
 package org.loxf.registry.main;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
 import org.loxf.registry.bean.Invocation;
@@ -38,6 +39,21 @@ public interface IProviderManager {
      * @author:luohj
      */
     public void export(Service[] services);  
+    /**
+     * TODO:暴露服务(配置文件形式)
+     * @param file
+     * @return
+     * @author:luohj
+     */
+    public Service export(File file);
+    /**
+     * TODO:暴露服务(直接暴露)
+     * @param interfaces
+     * @param impl
+     * @param group
+     * @author:luohj
+     */
+    public void export(Class<?> interfaces, Class<?> impl, String group);
     /**
      * TODO:监听是否运行
      * @return

@@ -8,6 +8,7 @@ package org.loxf.registry.listener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -32,6 +33,10 @@ public class ProviderListener {
 		openListen();
 	}
 	
+	public int getPort(){
+		return this.port;
+	}
+	
 	/**
 	 * 打开注册端口
 	 * 
@@ -44,7 +49,16 @@ public class ProviderListener {
 		if (server == null) {
 			synchronized (RpcListener.class) {
 				if (server == null) {
-					server = new ServerSocket(port, maxConnection);
+					while(true){
+						try{
+							server = new ServerSocket(port, maxConnection);
+							break;
+						} catch (BindException e){
+							port++;
+							if (port <= 0 || port > 65535)
+								throw new IllegalArgumentException("Invalid port " + port);
+						}
+					}
 				}
 			}
 		}

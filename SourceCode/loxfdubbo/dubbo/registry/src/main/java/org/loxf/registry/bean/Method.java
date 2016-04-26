@@ -47,6 +47,10 @@ public class Method extends BaseBean{
 				.toString();
 	}
 	
+	public int hashCode(){
+		return this.toString().hashCode();
+	}
+	
 	/**
 	 * @return the methodName
 	 */

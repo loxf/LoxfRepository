@@ -15,12 +15,19 @@ import java.net.Socket;
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Invocation;
 import org.loxf.registry.bean.Server;
+import org.loxf.registry.main.ClientManager;
 
 /**
  * @author luohj
  *
  */
 public class Refer {
+	private ClientManager clientMgr;
+
+	public Refer(ClientManager clientMgr) {
+		this.clientMgr = clientMgr;
+	}
+
 	/**
 	 * TODO:引用服务
 	 * 
@@ -40,8 +47,8 @@ public class Refer {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T refer(final Class<T> interfaceClass, final String group, final Server server,
-			final AliveClient client, final boolean asyn) throws Exception {
+	public <T> T refer(final Class<T> interfaceClass, final String group, final AliveClient client, final boolean asyn)
+			throws Exception {
 		if (interfaceClass == null)
 			throw new IllegalArgumentException("Interface class == null");
 		if (!interfaceClass.isInterface())
@@ -50,7 +57,9 @@ public class Refer {
 		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[] { interfaceClass },
 				new InvocationHandler() {
 					public Object invoke(Object proxy, Method method, Object[] arguments) throws Throwable {
-
+						// 负载均衡获取服务端
+						Server server = clientMgr
+								.loadBalancingServer(interfaceClass.getName() + (group == null ? "" : ":" + group), method);
 						if (server.getServerAddr() == null || server.getServerAddr().length() == 0)
 							throw new IllegalArgumentException("Host == null!");
 						if (server.getServerPort() <= 0 || server.getServerPort() > 65535)

@@ -5,12 +5,12 @@
  */
 package org.loxf.registry.main;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -19,7 +19,6 @@ import org.loxf.registry.bean.Client;
 import org.loxf.registry.bean.Invocation;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
-import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.listener.ProviderListener;
 import org.loxf.registry.queue.UploadServiceQueue;
@@ -49,6 +48,10 @@ public class ProviderManager implements IProviderManager {
 	 */
 	private int heartBeatTime;
 	/**
+	 * 上传服务间隔时间
+	 */
+	private int uploadTime;
+	/**
 	 * 监听是否运行
 	 */
 	private boolean isRuning = true;
@@ -77,7 +80,8 @@ public class ProviderManager implements IProviderManager {
 		registryCenter.setIp("127.0.0.1");
 		registryCenter.setPort(20880);
 
-		heartBeatTime = 30000;
+		heartBeatTime = 20000;
+		uploadTime = 30000;
 
 		client = new AliveClient();
 		client.setAppName("SERVER1");
@@ -86,10 +90,12 @@ public class ProviderManager implements IProviderManager {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		client.setPort(30201);
+		client.setPort(30200);//建议不要手工设置，从30200开始自动设置，端口被占，自动加1重设。
 		client.setType("SERV");
+		client.setTimeout(60000);
 
 		isRuning = false;
+		
 	}
 
 	/**
@@ -103,7 +109,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	/**
-	 * (non-Javadoc)
+	 * 调用方法
 	 * @param invo
 	 * 
 	 * @throws ClassNotFoundException
@@ -115,51 +121,85 @@ public class ProviderManager implements IProviderManager {
 	@Override
 	public Object call(Invocation invo)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException {
+		// 异步执行服务调用的客户端信息
 		String key = invo.getInterfaces()
 				+ (StringUtils.isBlank(invo.getGroup()) ? "" : ":" + invo.getGroup()).toString();
-		if (services.containsKey(key)) {
-			Service service = services.get(key);
-			synchronized (services) {
-				service.isUpdate();
-
-				HashMap<String, Client> clients = service.getClients();
-				Client c = new Client(invo.getIp(), invo.getAppName(), invo.isAsyn());
-				if (!clients.containsKey(c.toString())) {
-					// 更新客户端信息
-					c.setUpdate(true);
-					c.setChanged(true);
-					clients.put(c.toString(), c);
-				}
-				HashMap<String, Method> methods = service.getMethod();
-
-				Class<?>[] paramTypes = invo.getMethod().getParameterTypes();
-				String[] params = new String[paramTypes.length];
-				int i = 0;
-				for (Class<?> t : paramTypes) {
-					params[i++] = t.getName();
-				}
-				String methodKey = new StringBuffer().append(invo.getMethod().getName()).append("(")
-						.append(StringUtils.join(params, " ,")).append(")").toString();
-				if (!methods.containsKey(methodKey)) {
-					Method m = new Method(invo.getMethod().getName(), params);
-					m.isUpdate();
-					m.isChanged();
-					// 更新方法信息
-					methods.put(methodKey, m);
-				}
-			}
-			synchronized (queue) {
-				queue.add(service);
-			}
-			// 反射调用方法
-			Object result = invo.getMethod().invoke(Class.forName(service.getImplClazz()), invo.getParams());
-			return result;
-		} else {
+		Service service = services.get(key);
+		if(service==null){
 			throw new RuntimeException("服务[" + key + "]不存在！");
 		}
-	}
+		new Thread(new Runnable() {
+			public void run() {
+				synchronized (services) {
+					Date now = new Date();
+					HashMap<String, Client> clients = service.getClients();
+					Client c = new Client(invo.getIp(), invo.getAppName(), invo.isAsyn());
+					if (!clients.containsKey(c.toString())) {
+						// 更新客户端信息
+						c.setUpdate(true);
+						c.setChanged(true);
+						c.setLastModifyDate(now);
+						clients.put(c.toString(), c);
+					}
+					HashMap<String, Method> methods = service.getMethod();
 
+					Class<?>[] paramTypes = invo.getMethod().getParameterTypes();
+					String[] params = new String[paramTypes.length];
+					int i = 0;
+					for (Class<?> t : paramTypes) {
+						params[i++] = t.getName();
+					}
+					String methodKey = new StringBuffer().append(invo.getMethod().getName()).append("(")
+							.append(StringUtils.join(params, " ,")).append(")").toString();
+					if (!methods.containsKey(methodKey)) {
+						Method m = new Method(invo.getMethod().getName(), params);
+						c.setUpdate(true);
+						c.setChanged(true);
+						m.setLastModifyDate(now);
+						// 更新方法信息
+						methods.put(methodKey, m);
+					}
+				}
+				synchronized (queue) {
+					queue.add(service);
+				}
+			}
+		}).start();
+		// 反射调用方法
+		Object result = invo.getMethod().invoke(Class.forName(service.getImplClazz()), invo.getParams());
+		return result;
+
+	}
+	
 	/**
+	 * TODO:暴露服务(直接暴露)
+	 * @param interfaces
+	 * @param impl
+	 * @param group
+	 * @author:luohj
+	 */
+	public void export(Class<?> interfaces, Class<?> impl, String group){
+		Service service = new Service();
+		service.setInterfaces(interfaces.getName());
+		service.setImplClazz(impl.getName());
+		service.setServiceName(group==null? impl.getClass().getSimpleName():group);
+		service.setUpdate(true);
+		service.setChanged(true);
+		service.setLastModifyDate(new Date());
+		this.export(service);
+	}
+	
+	/**
+	 * 暴露服务
+	 * @param file
+	 * @return
+	 * @author:luohj
+	 */
+	public Service export(File file){
+		return null;
+	}
+	/**
+	 * 暴露服务（单个）
 	 * (non-Javadoc)
 	 * 
 	 * @see org.loxf.registry.main.IProviderManager#export(org.loxf.registry.bean.Service)
@@ -168,86 +208,20 @@ public class ProviderManager implements IProviderManager {
 	public void export(Service service) {
 		if (service != null && service.isUpdate()) {
 			synchronized (this.services) {
-				String result = service.toString();
-				Date now = new Date();
-				if (this.services.containsKey(service.toString())) {
-					Service srv = this.services.get(service.toString());
-					if (srv != null) {
-						// 先注册方法
-						HashMap<String, Method> methods = srv.getMethod();
-						if (methods != null) {
-							List<Method> tmpMethods = (List<Method>) service.getMethod().values();
-							for (Method tmpMethod : tmpMethods) {
-								if (tmpMethod.isUpdate() && tmpMethod.isChanged()) {
-									tmpMethod.setLastModifyDate(now);
-									methods.put(tmpMethod.toString(), tmpMethod);
-								}
-							}
-						} else {
-							if (service.getMethod() != null) {
-								srv.setMethod(service.getMethod());
-							}
-						}
-						// 再注册客户端
-						HashMap<String, Client> clients = srv.getClients();
-						if (clients != null) {
-							List<Client> tmpClients = (List<Client>) service.getClients().values();
-							for (Client tmpClient : tmpClients) {
-								if (tmpClient.isUpdate() && tmpClient.isChanged()) {
-									tmpClient.setLastModifyDate(now);
-									clients.put(tmpClient.toString(), tmpClient);
-								}
-							}
-
-						} else {
-							if (service.getClients() != null) {
-								srv.setClients(service.getClients());
-							}
-						}
-						// 再注册服务端
-						HashMap<String, Server> servers = srv.getServers();
-						if (servers != null) {
-							List<Server> tmpServers = (List<Server>) service.getServers().values();
-							for (Server tmpSv : tmpServers) {
-								if (tmpSv.isUpdate() && tmpSv.isChanged()) {
-									tmpSv.setLastModifyDate(now);
-									servers.put(tmpSv.toString(), tmpSv);
-									result += "[" + tmpSv.toString() + "]";
-								}
-							}
-						} else {
-							if (service.getServers() != null) {
-								srv.setServers(service.getServers());
-							}
-						}
-						// 最后注册服务本身
-						if (service.isUpdate() && service.isChanged()) {
-							srv.setInterfaces(service.getInterfaces());
-							srv.setImplClazz(service.getImplClazz());
-							srv.setPollingType(service.getPollingType());
-							srv.setServiceName(service.getServiceName());
-							srv.setStatus(service.getStatus());
-							srv.setTimeout(service.getTimeout());
-							srv.setAsyn(service.isAsyn());
-						}
-						srv.setUpdate(service.isUpdate());
-						srv.setChanged(service.isChanged());
-						srv.setLastModifyDate(now);
-					}
-				} else {
+				if (!this.services.containsKey(service.toString())) {
 					this.services.put(service.toString(), service);
 				}
-				// 更新了服务端信息时需要推送
-
-				synchronized (queue) {
-					queue.add(this.services.get(service.toString()));
-				}
-				System.out.println(result + ":暴露成功!");
 			}
+			synchronized (queue) {
+				queue.add(this.services.get(service.toString()));
+			}
+			// 更新了服务端信息时需要推送
+			System.out.println(service.toString() + ":暴露成功!");
 		}
 	}
 
 	/**
+	 * 暴露服务（多个）
 	 * (non-Javadoc)
 	 * 
 	 * @see org.loxf.registry.main.IProviderManager#export(org.loxf.registry.bean.Service[])
@@ -255,7 +229,7 @@ public class ProviderManager implements IProviderManager {
 	@Override
 	public void export(Service[] services) {
 		for (Service srv : services) {
-			export(srv);
+			this.export(srv);
 		}
 	}
 
@@ -279,12 +253,13 @@ public class ProviderManager implements IProviderManager {
 		// 启动服务接受监听
 		try {
 			ProviderListener listener = new ProviderListener(this, client.getPort());
+			client.setPort(listener.getPort());
 			listener.start();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		// 启动服务上发线程（与注册中心交互）
-		UploadServiceThread upload = new UploadServiceThread(heartBeatTime, queue, registryCenter);
+		UploadServiceThread upload = new UploadServiceThread(uploadTime, queue, registryCenter);
 		upload.start();
 
 		// 启动心跳线程

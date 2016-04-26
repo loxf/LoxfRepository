@@ -17,9 +17,12 @@ public interface IClientManager {
 	 */
 	void init();
 	/**
-	 * TODO:引用服务
+	 * TODO:引用服务（单个服务）
+	 * @param interfaces
+	 * @param group
+	 * @param asyn
 	 * @return
-	 * @author:luohj
+	 * @author: luohj
 	 */
 	<T> T refer(final Class<T> interfaces, final String group, final boolean asyn);
 	/**

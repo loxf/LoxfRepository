@@ -52,7 +52,6 @@ public class ClientHeartBeatThread {
 						try {
 							socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
 							ObjectOutputStream out = new ObjectOutputStream (socket.getOutputStream());
-							// 向注册中心请求全量服务列表
 							/**
 							 * 协议：<br>
 							 * in {int:0, AliveClient client}<br>

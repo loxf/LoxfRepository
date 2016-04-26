@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.bean.AliveClient;
-import org.loxf.registry.bean.Client;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
@@ -30,6 +30,7 @@ import org.loxf.registry.utils.ComputerInfoUtil;
 import org.loxf.registry.utils.LoadBalanceUtil;
 
 /**
+ * 消费端管理中心 
  * @author luohj
  *
  */
@@ -55,9 +56,9 @@ public class ClientManager implements IClientManager {
 	 */
 	private String pollingType ;
 	/**
-	 * 客户端服务接受监听端口
+	 * 服务引用工具
 	 */
-	private int port ;
+	private Refer refer;
 
 	/**
 	 * TODO:初始化方法
@@ -78,10 +79,14 @@ public class ClientManager implements IClientManager {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
+		// TODO：这儿建议改造，init的时候先启动服务接受通信线程，如果线程端口被占用，端口自动加1重试，直到成功启动，然后返回当前的Port，不应该直接设置
 		client.setPort(30001);
-		client.setType("CUST");
+		client.setType("CUST"); 
+		client.setTimeout(60000);// 默认1分钟
 		
 		pollingType = "RANDOM";
+
+		this.refer = new Refer(this);
 	}
 
 	/**
@@ -92,11 +97,8 @@ public class ClientManager implements IClientManager {
 	 */
 	@Override
 	public <T> T refer(Class<T> interfaces, String group, boolean asyn) {
-		// 负载均衡获取服务端
-		Server server = loadBalancingServer(getServerList(interfaces.getName() + (group == null ? "" : ":" + group)),
-				pollingType);
 		try {
-			return Refer.refer(interfaces, group, server, client, asyn);
+			return refer.refer(interfaces, group, client, asyn);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -124,7 +126,8 @@ public class ClientManager implements IClientManager {
 		getAllServicesFirstConnect();
 		// 再启动客户端获取服务的监听
 		try {
-			ClientListener listener = new ClientListener(this, port);
+			ClientListener listener = new ClientListener(this, client);
+			client.setPort(listener.getPort());
 			listener.start();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -194,77 +197,9 @@ public class ClientManager implements IClientManager {
 					Service service = queue.poll();
 					if (service != null && service.isUpdate()) {
 						synchronized (services) {
-							String result = service.toString();
-							Date now = new Date();
-							if (services.containsKey(service.toString())) {
-								Service srv = services.get(service.toString());
-								if (srv != null) {
-									// 先注册方法
-									HashMap<String, Method> methods = srv.getMethod();
-									if (methods != null) {
-										List<Method> tmpMethods = (List<Method>) service.getMethod().values();
-										for (Method tmpMethod : tmpMethods) {
-											if (tmpMethod.isUpdate() && tmpMethod.isChanged()) {
-												tmpMethod.setLastModifyDate(now);
-												methods.put(tmpMethod.toString(), tmpMethod);
-											}
-										}
-									} else {
-										if (service.getMethod() != null) {
-											srv.setMethod(service.getMethod());
-										}
-									}
-									// 再注册客户端
-									HashMap<String, Client> clients = srv.getClients();
-									if (clients != null) {
-										List<Client> tmpClients = (List<Client>) service.getClients().values();
-										for (Client tmpClient : tmpClients) {
-											if (tmpClient.isUpdate() && tmpClient.isChanged()) {
-												tmpClient.setLastModifyDate(now);
-												clients.put(tmpClient.toString(), tmpClient);
-											}
-										}
-
-									} else {
-										if (service.getClients() != null) {
-											srv.setClients(service.getClients());
-										}
-									}
-									// 再注册服务端
-									HashMap<String, Server> servers = srv.getServers();
-									if (servers != null) {
-										List<Server> tmpServers = (List<Server>) service.getServers().values();
-										for (Server tmpSv : tmpServers) {
-											if (tmpSv.isUpdate() && tmpSv.isChanged()) {
-												tmpSv.setLastModifyDate(now);
-												servers.put(tmpSv.toString(), tmpSv);
-												result += "[" + tmpSv.toString() + "]";
-											}
-										}
-									} else {
-										if (service.getServers() != null) {
-											srv.setServers(service.getServers());
-										}
-									}
-									// 最后注册服务本身
-									if (service.isUpdate() && service.isChanged()) {
-										srv.setInterfaces(service.getInterfaces());
-										srv.setImplClazz(service.getImplClazz());
-										srv.setPollingType(service.getPollingType());
-										srv.setServiceName(service.getServiceName());
-										srv.setStatus(service.getStatus());
-										srv.setTimeout(service.getTimeout());
-										srv.setAsyn(service.isAsyn());
-									}
-									srv.setUpdate(service.isUpdate());
-									srv.setChanged(service.isChanged());
-									srv.setLastModifyDate(now);
-								}
-							} else {
-								services.put(service.toString(), service);
-							}
-							System.out.println(result + ":更新成功!");
-
+							service.setLastModifyDate(new Date());
+							services.put(service.toString(), service);
+							System.out.println("客户端服务["+service.toString() + "]更新成功!");
 						}
 					}
 				}
@@ -350,7 +285,6 @@ public class ClientManager implements IClientManager {
 	 * TODO:软负载获取服务端信息
 	 * 
 	 * @param list
-	 * @param pollingType
 	 * @return
 	 * @author:luohj
 	 */
@@ -371,6 +305,37 @@ public class ClientManager implements IClientManager {
 			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
 		}
 		return null;
+	}
+	/**
+	 * TODO:软负载获取服务端信息
+	 * 
+	 * @param list
+	 * @return
+	 * @author:luohj
+	 */
+	public Server loadBalancingServer(String key, java.lang.reflect.Method method) {
+		Service service = this.getService(key);
+		if(service==null){
+			throw new RuntimeException("在消费端未找到当前service的定义！"+ service.toString());
+		}
+		// TODO 负载均衡算法，方法级>服务级>客户端总定义
+		String polling = StringUtils.isEmpty(service.getPollingType()) ? this.pollingType : service.getPollingType();
+		HashMap<String,Method> m = service.getMethod();
+		if(m!=null){
+			String[] param = new String[method.getParameterTypes().length];
+			int i = 0;
+			for(Class<?> c : method.getParameterTypes()){
+				param[i++] = c.getName();
+			}
+			Method mth = m.get(new StringBuffer().append(method.getName()).append("(").append(StringUtils.join(param, " ,")).append(")")
+					.toString());
+			if(mth!=null&&!StringUtils.isEmpty(mth.getPollingType())){
+				polling = mth.getPollingType();
+			}
+		}
+		HashMap<String, Server> servers = service.getServers();
+		List<Server> list = (List<Server>) servers.values();
+		return loadBalancingServer(list, polling);
 	}
 
 }

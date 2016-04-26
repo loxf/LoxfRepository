@@ -115,7 +115,7 @@ public class RegistryContainers extends BaseBean {
 							}
 						}
 						//最后注册服务本身
-						if(service.isUpdate() && service.isChanged()){
+						if(service.isChanged()){
 							srv.setInterfaces(service.getInterfaces());
 							srv.setImplClazz(service.getImplClazz());
 							srv.setPollingType(service.getPollingType());
@@ -130,6 +130,7 @@ public class RegistryContainers extends BaseBean {
 						srv.setLastModifyDate(now);
 					}
 				} else {
+					service.setLastModifyDate(now);
 					this.services.put(service.toString(), service);
 					isPush = true;
 				}

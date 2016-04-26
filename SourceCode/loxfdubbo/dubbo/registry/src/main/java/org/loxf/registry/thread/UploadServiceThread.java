@@ -49,7 +49,7 @@ public class UploadServiceThread {
 		new Thread(new Runnable(){
 			public void run(){
 				while(true){
-					if(queue.isEmpty()){
+					if(!queue.isEmpty()){
 						synchronized(queue){
 							try {
 								Service[] services = (Service[])queue.toArray();

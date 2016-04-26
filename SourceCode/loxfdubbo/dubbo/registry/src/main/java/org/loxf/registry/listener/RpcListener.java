@@ -39,11 +39,7 @@ public class RpcListener {
 		if (port <= 0 || port > 65535)
 			throw new IllegalArgumentException("Invalid port " + port);
 		if (server == null) {
-			synchronized (RpcListener.class) {
-				if (server == null) {
-					server = new ServerSocket(port, maxConnection);
-				}
-			}
+			server = new ServerSocket(port, maxConnection);
 		}
 		return true;
 	}
