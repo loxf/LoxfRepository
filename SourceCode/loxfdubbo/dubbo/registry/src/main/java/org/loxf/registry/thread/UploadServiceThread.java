@@ -49,60 +49,66 @@ public class UploadServiceThread {
 		new Thread(new Runnable(){
 			public void run(){
 				while(true){
-					if(!queue.isEmpty()){
-						synchronized(queue){
-							try {
-								Service[] services = (Service[])queue.toArray();
-								Socket socket = null;
+					if(registryCenter.getStatus().equals("EFF")){// 注册中心生效的时候，上发，保持状态、失效状态均不能上发
+						if(!queue.isEmpty()){
+							synchronized(queue){
 								try {
-									socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
-									ObjectOutputStream out = new ObjectOutputStream (socket.getOutputStream());
-									// 向注册中心请求全量服务列表
-									/**
-									 * 协议：<br>
-									 * in {object:LIST/SINGLE, Object Service[] services/Service service}<br>
-									 * out {(boolean)Object }<br>
-									 */
-									out.writeObject("LIST");
-									out.writeObject(services);
-									ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-									try {
-										Object result = in.readObject();
-										if(result instanceof Throwable){
-											throw (Throwable)result; 
-										}
-									} catch (ClassNotFoundException e) {
-										e.printStackTrace();
-									} catch (Throwable e) {
-										e.printStackTrace();
-									} finally {
-										in.close();
-										out.close();
+									Service[] services = new Service[queue.size()];
+									int i=0;
+									while(!queue.isEmpty()){
+										services[i++]=queue.poll();
 									}
-								} catch (UnknownHostException e) {
-									e.printStackTrace();
-								} catch (IOException e) {
-									e.printStackTrace();
-								} finally{
+									Socket socket = null;
 									try {
-										if(socket !=null)
-											socket.close();
+										socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
+										ObjectOutputStream out = new ObjectOutputStream (socket.getOutputStream());
+										// 向注册中心请求全量服务列表
+										/**
+										 * 协议：<br>
+										 * in {int:1, object:LIST/SINGLE, Object Service[] services/Service service}<br>
+										 * out {(boolean)Object }<br>
+										 */
+										out.writeInt(1);
+										out.writeObject("LIST");
+										out.writeObject(services);
+										ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+										try {
+											Object result = in.readObject();
+											if(result instanceof Throwable){
+												throw (Throwable)result; 
+											}
+										} catch (ClassNotFoundException e) {
+											e.printStackTrace();
+										} catch (Throwable e) {
+											e.printStackTrace();
+										} finally {
+											in.close();
+											out.close();
+										}
+									} catch (UnknownHostException e) {
+										e.printStackTrace();
 									} catch (IOException e) {
 										e.printStackTrace();
+									} finally{
+										try {
+											if(socket !=null)
+												socket.close();
+										} catch (IOException e) {
+											e.printStackTrace();
+										}
 									}
+									queue.clear();
+									Thread.sleep(sleepTime);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
 								}
-								queue.clear();
-								Thread.sleep(sleepTime);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
 							}
 						}
-					} else {
-						try {
-							Thread.sleep(sleepTime);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+					}
+					try {
+						Thread.sleep(sleepTime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
 				}
 			}

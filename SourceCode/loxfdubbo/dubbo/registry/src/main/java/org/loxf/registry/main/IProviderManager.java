@@ -72,4 +72,9 @@ public interface IProviderManager {
      * @author:luohj
      */
     public int getPort(); 
+    /**
+     * TODO:重发服务（注册中心拓机重启后使用）
+     * @author:luohj
+     */
+    public void reUploadService();
 }

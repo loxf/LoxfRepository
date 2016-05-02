@@ -5,7 +5,9 @@ import org.apache.commons.lang.StringUtils;
 public class Method extends BaseBean{
 
 	private static final long serialVersionUID = 1L;
-	
+	public Method(){
+		super(true);
+	}
 	/**
 	 * 方法名
 	 */

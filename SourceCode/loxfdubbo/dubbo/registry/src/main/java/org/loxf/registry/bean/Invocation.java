@@ -18,7 +18,6 @@ public class Invocation extends BaseBean{
 	private String ip;
 	private boolean asyn;
 	
-	
 	/**
 	 * @return the result
 	 */

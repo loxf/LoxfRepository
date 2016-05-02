@@ -13,6 +13,9 @@ import org.apache.commons.lang.StringUtils;
 public class Service extends BaseBean {
 
 	private static final long serialVersionUID = 1L;
+	public Service(){
+		super(true);
+	}
 	/**
 	 * 服务接口
 	 */

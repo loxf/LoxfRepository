@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -25,12 +26,14 @@ import org.loxf.registry.queue.UploadServiceQueue;
 import org.loxf.registry.thread.ServerHeartBeatThread;
 import org.loxf.registry.thread.UploadServiceThread;
 import org.loxf.registry.utils.ComputerInfoUtil;
+import org.loxf.registry.utils.MapCastList;
 
 /**
  * @author luohj
  *
  */
 public class ProviderManager implements IProviderManager {
+	static ProviderManager mgr;
 	/**
 	 * 注册中心
 	 */
@@ -58,14 +61,27 @@ public class ProviderManager implements IProviderManager {
 	/**
 	 * 上发服务队列
 	 */
-	private UploadServiceQueue queue;
+	private UploadServiceQueue queue = new UploadServiceQueue();
 	/**
 	 * 配置文件路径
 	 */
 	private String xmlPath;
-	
-	public ProviderManager(){
+
+	ProviderManager() {
 		init();
+		start();
+		mgr = this;
+	}
+
+	public static ProviderManager getProviderManager() {
+		if (mgr == null) {
+			synchronized (ProviderManager.class) {
+				if (mgr == null) {
+					mgr = new ProviderManager();
+				}
+			}
+		}
+		return mgr;
 	}
 
 	/**
@@ -75,7 +91,7 @@ public class ProviderManager implements IProviderManager {
 	 */
 	void init() {
 		parseXml(xmlPath);
-		
+
 		this.registryCenter = new RegistryCenter();
 		registryCenter.setIp("127.0.0.1");
 		registryCenter.setPort(20880);
@@ -90,12 +106,12 @@ public class ProviderManager implements IProviderManager {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		client.setPort(30200);//建议不要手工设置，从30200开始自动设置，端口被占，自动加1重设。
+		client.setPort(30200);// 建议不要手工设置，从30200开始自动设置，端口被占，自动加1重设。
 		client.setType("SERV");
 		client.setTimeout(60000);
 
 		isRuning = false;
-		
+
 	}
 
 	/**
@@ -105,11 +121,12 @@ public class ProviderManager implements IProviderManager {
 	 * @author:luohj
 	 */
 	void parseXml(String path) {
-		
+
 	}
 
 	/**
 	 * 调用方法
+	 * 
 	 * @param invo
 	 * 
 	 * @throws ClassNotFoundException
@@ -125,7 +142,7 @@ public class ProviderManager implements IProviderManager {
 		String key = invo.getInterfaces()
 				+ (StringUtils.isBlank(invo.getGroup()) ? "" : ":" + invo.getGroup()).toString();
 		Service service = services.get(key);
-		if(service==null){
+		if (service == null) {
 			throw new RuntimeException("服务[" + key + "]不存在！");
 		}
 		new Thread(new Runnable() {
@@ -170,37 +187,39 @@ public class ProviderManager implements IProviderManager {
 		return result;
 
 	}
-	
+
 	/**
 	 * TODO:暴露服务(直接暴露)
+	 * 
 	 * @param interfaces
 	 * @param impl
 	 * @param group
 	 * @author:luohj
 	 */
-	public void export(Class<?> interfaces, Class<?> impl, String group){
+	public void export(Class<?> interfaces, Class<?> impl, String group) {
 		Service service = new Service();
 		service.setInterfaces(interfaces.getName());
 		service.setImplClazz(impl.getName());
-		service.setServiceName(group==null? impl.getClass().getSimpleName():group);
+		service.setServiceName(group == null ? impl.getClass().getSimpleName() : group);
 		service.setUpdate(true);
 		service.setChanged(true);
 		service.setLastModifyDate(new Date());
 		this.export(service);
 	}
-	
+
 	/**
 	 * 暴露服务
+	 * 
 	 * @param file
 	 * @return
 	 * @author:luohj
 	 */
-	public Service export(File file){
+	public Service export(File file) {
 		return null;
 	}
+
 	/**
-	 * 暴露服务（单个）
-	 * (non-Javadoc)
+	 * 暴露服务（单个） (non-Javadoc)
 	 * 
 	 * @see org.loxf.registry.main.IProviderManager#export(org.loxf.registry.bean.Service)
 	 */
@@ -221,8 +240,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	/**
-	 * 暴露服务（多个）
-	 * (non-Javadoc)
+	 * 暴露服务（多个） (non-Javadoc)
 	 * 
 	 * @see org.loxf.registry.main.IProviderManager#export(org.loxf.registry.bean.Service[])
 	 */
@@ -258,14 +276,58 @@ public class ProviderManager implements IProviderManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		// 启动服务上发线程（与注册中心交互）
-		UploadServiceThread upload = new UploadServiceThread(uploadTime, queue, registryCenter);
-		upload.start();
+		//上发服务
+		uploadService();
 
 		// 启动心跳线程
 		ServerHeartBeatThread serverHeartBeat = new ServerHeartBeatThread(heartBeatTime, registryCenter, client);
 		serverHeartBeat.start();
-		return false;
+		
+		// 保持一个重发线程
+		new Thread(new Runnable(){
+			@Override
+			public void run() {
+				while(true){
+					if(registryCenter.getStatus().equals("EXP")){
+						reUploadService();
+						// 重新注册成功后，改注册中心状态为保持。
+						registryCenter.setStatus("HOLD");
+					}
+					try {
+						Thread.sleep(uploadTime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+		}).start();
+		return true;
+	}
+	
+	/**
+	 * @see org.loxf.registry.main.IProviderManager#reUploadService()
+	 */
+	@SuppressWarnings("unchecked")
+	public void reUploadService(){
+		List<Service> srvs = (List<Service>) MapCastList.convert(this.services);
+		if(srvs!=null){
+			synchronized (queue) {
+				for(Service srv: srvs){
+					queue.add(srv);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * TODO:上发服务
+	 * @author:luohj
+	 */
+	void uploadService(){
+		// 启动服务上发线程（与注册中心交互）
+		UploadServiceThread upload = new UploadServiceThread(uploadTime, queue, registryCenter);
+		upload.start();
 	}
 
 	/**
@@ -278,4 +340,8 @@ public class ProviderManager implements IProviderManager {
 		return client.getPort();
 	}
 
+	public static void main(String args[]) {
+		ProviderManager mgr = ProviderManager.getProviderManager();
+		mgr.start();
+	}
 }

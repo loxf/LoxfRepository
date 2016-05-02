@@ -11,4 +11,5 @@ package org.loxf.api.demo;
  */
 public interface IWho {
 	String who();
+	String iam(String name);
 }

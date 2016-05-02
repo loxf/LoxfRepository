@@ -8,6 +8,8 @@ package org.loxf.registry.main;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -17,12 +19,12 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.bean.AliveClient;
+import org.loxf.registry.bean.Invocation;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.constracts.PollingType;
-import org.loxf.registry.exportAndRefer.Refer;
 import org.loxf.registry.listener.ClientListener;
 import org.loxf.registry.queue.IssuedQueue;
 import org.loxf.registry.thread.ClientHeartBeatThread;
@@ -55,10 +57,6 @@ public class ClientManager implements IClientManager {
 	 * 负载配置
 	 */
 	private String pollingType ;
-	/**
-	 * 服务引用工具
-	 */
-	private Refer refer;
 
 	/**
 	 * TODO:初始化方法
@@ -79,14 +77,11 @@ public class ClientManager implements IClientManager {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		// TODO：这儿建议改造，init的时候先启动服务接受通信线程，如果线程端口被占用，端口自动加1重试，直到成功启动，然后返回当前的Port，不应该直接设置
 		client.setPort(30001);
 		client.setType("CUST"); 
 		client.setTimeout(60000);// 默认1分钟
 		
 		pollingType = "RANDOM";
-
-		this.refer = new Refer(this);
 	}
 
 	/**
@@ -98,11 +93,85 @@ public class ClientManager implements IClientManager {
 	@Override
 	public <T> T refer(Class<T> interfaces, String group, boolean asyn) {
 		try {
-			return refer.refer(interfaces, group, client, asyn);
+			return refer(interfaces, group, client, asyn);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	/**
+	 * TODO:引用服务
+	 * 
+	 * @param <T>
+	 *            接口泛型
+	 * @param interfaceClass
+	 *            接口类型
+	 * @param group
+	 *            分组，用于区分一个接口多个实现
+	 * @param server
+	 *            服务端信息
+	 * @param AliveClient
+	 *            客户端信息
+	 * @param asyn
+	 *            是否同步
+	 * @return 远程服务
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T refer(final Class<T> interfaceClass, final String group, final AliveClient client, final boolean asyn)
+			throws Exception {
+		if (interfaceClass == null)
+			throw new IllegalArgumentException("Interface class == null");
+		if (!interfaceClass.isInterface())
+			throw new IllegalArgumentException("The " + interfaceClass.getName() + " must be interface class!");
+		System.out.println("Refer service " + interfaceClass.getName() + " success. ");
+		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[] { interfaceClass },
+				new InvocationHandler() {
+					public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] arguments) throws Throwable {
+						// 负载均衡获取服务端
+						Server server = loadBalancingServer(interfaceClass.getName() + (group == null ? "" : ":" + group), method);
+						if (server.getServerAddr() == null || server.getServerAddr().length() == 0)
+							throw new IllegalArgumentException("Host == null!");
+						if (server.getServerPort() <= 0 || server.getServerPort() > 65535)
+							throw new IllegalArgumentException("Invalid port " + server.getServerPort());
+						System.out.println("Get remote service " + interfaceClass.getName() + " from server "
+								+ server.getServerAddr() + ":" + server.getServerPort());
+
+						Socket socket = new Socket(server.getServerAddr(), server.getServerPort());
+						try {
+							ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+							try {
+								/**
+								 * 协议 in{Invocation invo} out{Object result}
+								 */
+								Invocation invo = new Invocation();
+								invo.setInterfaces(interfaceClass);
+								invo.setGroup(group);
+								invo.setMethod(method);
+								invo.setParams(arguments);
+								invo.setAppName(client.getAppName());
+								invo.setAsyn(asyn);
+								invo.setIp(client.getIp());
+								output.writeObject(invo);
+								ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+								try {
+									Object result = input.readObject();
+									if (result instanceof Throwable) {
+										throw (Throwable) result;
+									}
+									return result;
+								} finally {
+									input.close();
+								}
+							} finally {
+								output.close();
+							}
+						} finally {
+							socket.close();
+						}
+					}
+				});
 	}
 
 	/**
@@ -316,7 +385,7 @@ public class ClientManager implements IClientManager {
 	public Server loadBalancingServer(String key, java.lang.reflect.Method method) {
 		Service service = this.getService(key);
 		if(service==null){
-			throw new RuntimeException("在消费端未找到当前service的定义！"+ service.toString());
+			throw new RuntimeException("在消费端未找到当前service的定义！"+ key);
 		}
 		// TODO 负载均衡算法，方法级>服务级>客户端总定义
 		String polling = StringUtils.isEmpty(service.getPollingType()) ? this.pollingType : service.getPollingType();
@@ -336,6 +405,11 @@ public class ClientManager implements IClientManager {
 		HashMap<String, Server> servers = service.getServers();
 		List<Server> list = (List<Server>) servers.values();
 		return loadBalancingServer(list, polling);
+	}
+	
+	public static void main(String args[]){
+		ClientManager mgr = new ClientManager();
+		mgr.start();
 	}
 
 }

@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.queue.IssuedQueue;
+import org.loxf.registry.utils.MapCastList;
 
 /**
  * 发布服务给客户端（每五秒钟）
@@ -35,7 +36,8 @@ public class PushServicesThread {
 				while(true){
 					if(!queue.isEmpty()){
 						synchronized(queue){
-							List<AliveClient> listClient = (List<AliveClient>)aliveClients.values();
+							@SuppressWarnings("unchecked")
+							List<AliveClient> listClient = (List<AliveClient>) MapCastList.convert(aliveClients);
 							for(AliveClient client : listClient){
 								if("CUST".equalsIgnoreCase(client.getType())){
 									Socket socket = null;

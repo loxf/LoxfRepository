@@ -51,6 +51,9 @@ public class ServerHeartBeatThread {
 						Socket socket = null;
 						try {
 							socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
+							if(registryCenter.getStatus().equals("HOLD")){
+								registryCenter.setStatus("EFF");
+							}
 							ObjectOutputStream out = new ObjectOutputStream (socket.getOutputStream());
 							// 向注册中心请求全量服务列表
 							/**
@@ -70,7 +73,7 @@ public class ServerHeartBeatThread {
 								out.close();
 							}
 						} catch (UnknownHostException e) {
-							e.printStackTrace();
+							registryCenter.setStatus("EXP");
 						} catch (IOException e) {
 							e.printStackTrace();
 						} finally{

@@ -29,7 +29,16 @@ public class BaseBean implements Serializable{
 	 * 最后一次更新时间
 	 */
 	private Date lastModifyDate;
+	
+	public BaseBean(){
+		
+	}
 
+	public BaseBean(boolean flag){
+		isUpdate = flag;
+		isChanged = flag;
+		lastModifyDate = new Date();
+	}
 	/**
 	 * @return the isUpdate
 	 */

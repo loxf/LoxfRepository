@@ -6,17 +6,19 @@
 package org.loxf.service.impl;
 
 import org.loxf.api.demo.IHello;
+import org.loxf.registry.annotation.Method;
+import org.loxf.registry.annotation.Provider;
 
 /**
  * @author lenovo
  *
  */
+@Provider(impl = HelloWorldImpl.class, interfaces = IHello.class)
 public class HelloWorldImpl implements IHello {
-
-	/* (non-Javadoc)
+	/** (non-Javadoc)
 	 * @see org.loxf.service.interfaces.IHello#sayHi()
 	 */
-	@Override
+	@Method
 	public String sayHi() {
 		return "Hi, world!";
 	}

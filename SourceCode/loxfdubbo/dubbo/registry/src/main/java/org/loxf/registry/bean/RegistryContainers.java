@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.loxf.registry.queue.IssuedQueue;
+import org.loxf.registry.utils.MapCastList;
 
 /**
  * @author luohj
@@ -29,13 +30,8 @@ public class RegistryContainers extends BaseBean {
 	private IssuedQueue issuedQueue;
 	
 	public RegistryContainers(){
-		if(services==null){
-			synchronized(RegistryContainers.class){
-				if(services==null){
-					services = new HashMap<String, Service>();
-				}
-			}
-		}
+		services = new HashMap<String, Service>();
+		issuedQueue = new IssuedQueue();
 	}
 	
 	/**
@@ -69,7 +65,8 @@ public class RegistryContainers extends BaseBean {
 						//先注册方法
 						HashMap<String, Method> methods = srv.getMethod();
 						if(methods!=null){
-							List<Method> tmpMethods = (List<Method>) service.getMethod().values();
+							@SuppressWarnings("unchecked")
+							List<Method> tmpMethods = (List<Method>) MapCastList.convert(service.getMethod());
 							for(Method tmpMethod: tmpMethods){
 								if(tmpMethod.isUpdate()&&tmpMethod.isChanged()){
 									tmpMethod.setLastModifyDate(now);

@@ -9,7 +9,10 @@ import org.springframework.util.StringUtils;
  */
 public class Client extends BaseBean {
 	private static final long serialVersionUID = 1L;
-	
+
+	public Client(){
+		super(true);
+	}
 	/**
 	 * 客户端地址（IP/HOST）
 	 */

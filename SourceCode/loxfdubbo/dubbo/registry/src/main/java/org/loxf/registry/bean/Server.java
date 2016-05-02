@@ -11,7 +11,10 @@ package org.loxf.registry.bean;
  */
 public class Server extends BaseBean {
 	private static final long serialVersionUID = 1L;
-
+	public Server(){
+		super(true);
+	}
+	
 	/**
 	 * 提供者地址
 	 */

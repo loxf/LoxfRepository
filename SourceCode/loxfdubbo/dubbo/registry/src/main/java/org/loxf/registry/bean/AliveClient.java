@@ -18,6 +18,11 @@ public class AliveClient extends BaseBean {
 	private int port;
 	private String appName;
 	private long timeout;
+	
+	public AliveClient(){
+		super(true);
+	}
+	
 	/**
 	 * 类型：客户端CUST，服务端SERV
 	 */
