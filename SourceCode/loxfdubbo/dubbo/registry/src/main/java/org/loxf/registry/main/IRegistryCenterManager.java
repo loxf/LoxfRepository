@@ -1,5 +1,8 @@
 package org.loxf.registry.main;
 
+import java.util.Map;
+
+import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 
@@ -62,4 +65,16 @@ public interface IRegistryCenterManager {
      * @author:luohj
      */
     public int getPort(); 
+	/**
+	 * TODO:服务端/消费端存活队列（有心跳）
+	 * @param client 消费端或者服务端
+	 * @author:luohj
+	 */
+	public void addAliveClient(AliveClient client);
+	/**
+	 * TODO:获取所有服务
+	 * @return
+	 * @author:luohj
+	 */
+	public Map<String, Service> getServices();
 }

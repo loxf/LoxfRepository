@@ -12,7 +12,7 @@ import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.loxf.registry.bean.Invocation;
+import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.main.ProviderManager;
 
 /**

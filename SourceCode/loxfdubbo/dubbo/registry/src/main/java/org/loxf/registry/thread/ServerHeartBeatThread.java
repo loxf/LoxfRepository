@@ -65,8 +65,13 @@ public class ServerHeartBeatThread {
 							out.writeObject(client);
 							ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 							try {
-								in.readObject();
+								Object result = in.readObject();
+								if(result instanceof Throwable){
+									throw (Throwable)result; 
+								}
 							} catch (ClassNotFoundException e) {
+								e.printStackTrace();
+							} catch (Throwable e) {
 								e.printStackTrace();
 							} finally {
 								in.close();
@@ -77,15 +82,13 @@ public class ServerHeartBeatThread {
 						} catch (IOException e) {
 							e.printStackTrace();
 						} finally{
-							try {
-								if(socket !=null)
-									socket.close();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
+							if(socket !=null)
+								socket.close();
 						}
 						Thread.sleep(sleepTime);
 					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}

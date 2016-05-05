@@ -17,10 +17,11 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Client;
-import org.loxf.registry.bean.Invocation;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
+import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
+import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ProviderListener;
 import org.loxf.registry.queue.UploadServiceQueue;
 import org.loxf.registry.thread.ServerHeartBeatThread;
@@ -33,7 +34,7 @@ import org.loxf.registry.utils.MapCastList;
  *
  */
 public class ProviderManager implements IProviderManager {
-	static ProviderManager mgr;
+	static IProviderManager mgr;
 	/**
 	 * 注册中心
 	 */
@@ -73,7 +74,7 @@ public class ProviderManager implements IProviderManager {
 		mgr = this;
 	}
 
-	public static ProviderManager getProviderManager() {
+	public static IProviderManager getProviderManager() {
 		if (mgr == null) {
 			synchronized (ProviderManager.class) {
 				if (mgr == null) {
@@ -133,13 +134,13 @@ public class ProviderManager implements IProviderManager {
 	 * @throws InvocationTargetException
 	 * @throws IllegalArgumentException
 	 * @throws IllegalAccessException
-	 * @see org.loxf.registry.main.IProviderManager#call(org.loxf.registry.bean.Invocation)
+	 * @see org.loxf.registry.main.IProviderManager#call(org.loxf.registry.invocation.Invocation)
 	 */
 	@Override
 	public Object call(Invocation invo)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException {
 		// 异步执行服务调用的客户端信息
-		String key = invo.getInterfaces()
+		String key = invo.getInterfaces().getName()
 				+ (StringUtils.isBlank(invo.getGroup()) ? "" : ":" + invo.getGroup()).toString();
 		Service service = services.get(key);
 		if (service == null) {
@@ -151,6 +152,9 @@ public class ProviderManager implements IProviderManager {
 					Date now = new Date();
 					HashMap<String, Client> clients = service.getClients();
 					Client c = new Client(invo.getIp(), invo.getAppName(), invo.isAsyn());
+					if(clients==null){
+						clients = new HashMap<String, Client> ();
+					}
 					if (!clients.containsKey(c.toString())) {
 						// 更新客户端信息
 						c.setUpdate(true);
@@ -183,7 +187,19 @@ public class ProviderManager implements IProviderManager {
 			}
 		}).start();
 		// 反射调用方法
-		Object result = invo.getMethod().invoke(Class.forName(service.getImplClazz()), invo.getParams());
+		java.lang.reflect.Method m = null;
+		Object result = null;
+		try {
+			m = Class.forName(service.getInterfaces()).getMethod(invo.getMethod().getName(),
+					invo.getMethod().getParameterTypes());
+			result = m.invoke(Class.forName(service.getImplClazz()).newInstance(), invo.getParams());
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		}
 		return result;
 
 	}
@@ -225,7 +241,17 @@ public class ProviderManager implements IProviderManager {
 	 */
 	@Override
 	public void export(Service service) {
+
 		if (service != null && service.isUpdate()) {
+			Server server = new Server();
+			server.setServerAddr(client.getIp());
+			server.setServerPort(client.getPort());
+			server.setServerName(client.getAppName());
+			server.setStatus("EFF");
+			server.setTimeout(client.getTimeout());
+			HashMap<String, Server> map = new HashMap<String, Server>();
+			map.put(server.toString(), server);
+			service.setServers(map);
 			synchronized (this.services) {
 				if (!this.services.containsKey(service.toString())) {
 					this.services.put(service.toString(), service);
@@ -276,19 +302,19 @@ public class ProviderManager implements IProviderManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		//上发服务
+		// 上发服务线程
 		uploadService();
 
 		// 启动心跳线程
 		ServerHeartBeatThread serverHeartBeat = new ServerHeartBeatThread(heartBeatTime, registryCenter, client);
 		serverHeartBeat.start();
-		
+
 		// 保持一个重发线程
-		new Thread(new Runnable(){
+		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while(true){
-					if(registryCenter.getStatus().equals("EXP")){
+				while (true) {
+					if (registryCenter.getStatus().equals("EXP")) {
 						reUploadService();
 						// 重新注册成功后，改注册中心状态为保持。
 						registryCenter.setStatus("HOLD");
@@ -300,31 +326,32 @@ public class ProviderManager implements IProviderManager {
 					}
 				}
 			}
-			
+
 		}).start();
 		return true;
 	}
-	
+
 	/**
 	 * @see org.loxf.registry.main.IProviderManager#reUploadService()
 	 */
 	@SuppressWarnings("unchecked")
-	public void reUploadService(){
+	public void reUploadService() {
 		List<Service> srvs = (List<Service>) MapCastList.convert(this.services);
-		if(srvs!=null){
+		if (srvs != null) {
 			synchronized (queue) {
-				for(Service srv: srvs){
+				for (Service srv : srvs) {
 					queue.add(srv);
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * TODO:上发服务
+	 * 
 	 * @author:luohj
 	 */
-	void uploadService(){
+	void uploadService() {
 		// 启动服务上发线程（与注册中心交互）
 		UploadServiceThread upload = new UploadServiceThread(uploadTime, queue, registryCenter);
 		upload.start();
@@ -341,7 +368,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	public static void main(String args[]) {
-		ProviderManager mgr = ProviderManager.getProviderManager();
+		IProviderManager mgr = ProviderManager.getProviderManager();
 		mgr.start();
 	}
 }

@@ -19,17 +19,18 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.bean.AliveClient;
-import org.loxf.registry.bean.Invocation;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.constracts.PollingType;
+import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ClientListener;
 import org.loxf.registry.queue.IssuedQueue;
 import org.loxf.registry.thread.ClientHeartBeatThread;
 import org.loxf.registry.utils.ComputerInfoUtil;
 import org.loxf.registry.utils.LoadBalanceUtil;
+import org.loxf.registry.utils.MapCastList;
 
 /**
  * 消费端管理中心 
@@ -37,6 +38,7 @@ import org.loxf.registry.utils.LoadBalanceUtil;
  *
  */
 public class ClientManager implements IClientManager {
+	private static IClientManager mgr ;
 	/**
 	 * 注册中心
 	 */
@@ -58,6 +60,22 @@ public class ClientManager implements IClientManager {
 	 */
 	private String pollingType ;
 
+	ClientManager(){
+		init();
+		start();
+		mgr = this;
+	}
+	public static IClientManager getClientManager() {
+		if (mgr == null) {
+			synchronized (ProviderManager.class) {
+				if (mgr == null) {
+					mgr = new ClientManager();
+				}
+			}
+		}
+		return mgr;
+	}
+	
 	/**
 	 * TODO:初始化方法
 	 * 
@@ -119,7 +137,7 @@ public class ClientManager implements IClientManager {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T refer(final Class<T> interfaceClass, final String group, final AliveClient client, final boolean asyn)
+	<T> T refer(final Class<T> interfaceClass, final String group, final AliveClient client, final boolean asyn)
 			throws Exception {
 		if (interfaceClass == null)
 			throw new IllegalArgumentException("Interface class == null");
@@ -130,7 +148,8 @@ public class ClientManager implements IClientManager {
 				new InvocationHandler() {
 					public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] arguments) throws Throwable {
 						// 负载均衡获取服务端
-						Server server = loadBalancingServer(interfaceClass.getName() + (group == null ? "" : ":" + group), method);
+						Server server = loadBalancingServer(
+								interfaceClass.getName() + (StringUtils.isEmpty(group) ? "" : ":" + group), method);
 						if (server.getServerAddr() == null || server.getServerAddr().length() == 0)
 							throw new IllegalArgumentException("Host == null!");
 						if (server.getServerPort() <= 0 || server.getServerPort() > 65535)
@@ -148,7 +167,10 @@ public class ClientManager implements IClientManager {
 								Invocation invo = new Invocation();
 								invo.setInterfaces(interfaceClass);
 								invo.setGroup(group);
-								invo.setMethod(method);
+								org.loxf.registry.invocation.Method m = new org.loxf.registry.invocation.Method();
+								m.setName(method.getName());
+								m.setParameterTypes(method.getParameterTypes());
+								invo.setMethod(m);
 								invo.setParams(arguments);
 								invo.setAppName(client.getAppName());
 								invo.setAsyn(asyn);
@@ -217,40 +239,49 @@ public class ClientManager implements IClientManager {
 	 * out {Map<String, Service> services}<br>
 	 * 
 	 * @author:luohj
+	 * @throws IOException 
 	 */
 	private void getAllServicesFirstConnect() {
-		Socket socket = null;
-		try {
-			socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
-			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-			// 向注册中心请求全量服务列表
-			out.writeInt(2);
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			try {
-				@SuppressWarnings("unchecked")
-				Map<String, Service> result = (Map<String, Service>) in.readObject();
-				this.services = result;
-				System.out.println(result);
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} finally {
-				in.close();
-				out.close();
+		new Thread(new Runnable(){
+			public void run(){
+				while(true){
+					try {
+						Socket socket = null;
+						try {
+							socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
+							ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+							// 向注册中心请求全量服务列表
+							out.writeInt(2);
+							out.writeObject("QUERY");
+							ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+							try {
+								@SuppressWarnings("unchecked")
+								Map<String, Service> result = (Map<String, Service>) in.readObject();
+								services = result;
+								System.out.println(result);
+								break;// 获取成功才能结束
+							} catch (ClassNotFoundException e) {
+								e.printStackTrace();
+							} finally {
+								in.close();
+								out.close();
+							}
+						} catch (NumberFormatException e) {
+							e.printStackTrace();
+						} catch (UnknownHostException e) {
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						} finally {
+							if (socket != null)
+								socket.close();
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (socket != null)
-					socket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		}).start();
 	}
 
 	/**
@@ -403,12 +434,13 @@ public class ClientManager implements IClientManager {
 			}
 		}
 		HashMap<String, Server> servers = service.getServers();
-		List<Server> list = (List<Server>) servers.values();
+		@SuppressWarnings("unchecked")
+		List<Server> list = (List<Server>) MapCastList.convert(servers);
 		return loadBalancingServer(list, polling);
 	}
 	
 	public static void main(String args[]){
-		ClientManager mgr = new ClientManager();
+		IClientManager mgr = ClientManager.getClientManager();
 		mgr.start();
 	}
 

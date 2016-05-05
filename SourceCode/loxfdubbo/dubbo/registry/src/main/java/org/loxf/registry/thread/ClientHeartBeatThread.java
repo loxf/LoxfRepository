@@ -78,15 +78,13 @@ public class ClientHeartBeatThread {
 						} catch (IOException e) {
 							e.printStackTrace();
 						} finally{
-							try {
-								if(socket !=null)
-									socket.close();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
+							if(socket !=null)
+								socket.close();
 						}
 						Thread.sleep(sleepTime);
 					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}

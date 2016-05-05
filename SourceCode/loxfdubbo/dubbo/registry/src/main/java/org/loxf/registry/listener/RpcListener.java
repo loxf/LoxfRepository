@@ -8,7 +8,7 @@ import java.net.Socket;
 
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Service;
-import org.loxf.registry.main.RegistryCenterManager;
+import org.loxf.registry.main.IRegistryCenterManager;
 
 
 /**
@@ -19,11 +19,11 @@ import org.loxf.registry.main.RegistryCenterManager;
  */
 public class RpcListener {
 	private ServerSocket server;
-	private RegistryCenterManager serverManager;
+	private IRegistryCenterManager serverManager;
 	private int port;
 	private int maxConnection = 1000 ;
 
-	public RpcListener(RegistryCenterManager serverManager) throws IOException {
+	public RpcListener(IRegistryCenterManager serverManager) throws IOException {
 		this.serverManager = serverManager;
 		this.port = serverManager.getPort();
 		openListen();

@@ -34,7 +34,7 @@ public class Server extends BaseBean {
 	/**
 	 * 失效时间毫秒（注册中心timeout时长过后，删除server信息）
 	 */
-	private int timeout;
+	private long timeout;
 	
 	public Server(String serverAddr, int serverPort){
 		this.serverAddr = serverAddr;
@@ -110,7 +110,7 @@ public class Server extends BaseBean {
 	/**
 	 * @return the timeout
 	 */
-	public int getTimeout() {
+	public long getTimeout() {
 		return timeout;
 	}
 
@@ -118,7 +118,7 @@ public class Server extends BaseBean {
 	 * @param timeout
 	 *            the timeout to set
 	 */
-	public void setTimeout(int timeout) {
+	public void setTimeout(long timeout) {
 		this.timeout = timeout;
 	}
 }

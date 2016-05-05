@@ -8,8 +8,8 @@ package org.loxf.registry.main;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
-import org.loxf.registry.bean.Invocation;
 import org.loxf.registry.bean.Service;
+import org.loxf.registry.invocation.Invocation;
 
 /**
  * @author luohj

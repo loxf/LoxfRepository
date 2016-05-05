@@ -97,7 +97,8 @@ public class RegistryContainers extends BaseBean {
 						//再注册服务端
 						HashMap<String, Server> servers = srv.getServers(); 
 						if(servers!=null){
-							List<Server> tmpServers = (List<Server>) service.getServers().values();
+							@SuppressWarnings("unchecked")
+							List<Server> tmpServers = (List<Server>) MapCastList.convert(service.getServers());
 							for(Server tmpSv: tmpServers){
 								if(tmpSv.isUpdate()&&tmpSv.isChanged()){
 									tmpSv.setLastModifyDate(now);

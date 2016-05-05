@@ -13,7 +13,7 @@ import org.loxf.registry.annotation.Provider;
  * @author lenovo
  *
  */
-@Provider(impl = WhoBoy.class, interfaces = IWho.class)
+@Provider(impl = WhoBoy.class, interfaces = IWho.class, group = "WhoBoy")
 public class WhoBoy implements IWho {
 
 	/** (non-Javadoc)
@@ -30,7 +30,7 @@ public class WhoBoy implements IWho {
 	@Method
 	@Override
 	public String iam(String name) {
-		return null;
+		return "I am " + name;
 	}
 
 }

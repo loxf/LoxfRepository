@@ -33,7 +33,7 @@ public class ExportUtil {
 						service.setAsyn(provider.asyn());
 						service.setInterfaces(provider.interfaces().getName());
 						service.setImplClazz(provider.impl().getName());
-						service.setServiceName(StringUtils.isEmpty(provider.group()) ? provider.impl().getSimpleName()
+						service.setServiceName(StringUtils.isEmpty(provider.group()) ? ""
 								: provider.group());
 						service.setTimeout(provider.timeout());
 						service.setStatus(provider.status().getValue());

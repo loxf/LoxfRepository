@@ -1,7 +1,8 @@
-package org.loxf.registry.bean;
+package org.loxf.registry.invocation;
 
 import java.util.Arrays;
-import java.lang.reflect.Method;
+
+import org.loxf.registry.bean.BaseBean;
 
 public class Invocation extends BaseBean{
 	/**

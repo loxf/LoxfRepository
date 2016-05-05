@@ -18,8 +18,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Customer {
 	public Class<?> interfaces();
-	public String group();
-	public boolean asyn();
+	public String group() default "";
+	public boolean asyn() default false;
 	public String pollingType() default "";
 	public int timeout() default 0;
 }

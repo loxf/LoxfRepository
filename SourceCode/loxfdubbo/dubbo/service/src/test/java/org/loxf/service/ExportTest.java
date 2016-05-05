@@ -7,7 +7,6 @@ package org.loxf.service;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.junit.Test;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.main.IProviderManager;
 import org.loxf.registry.main.ProviderManager;
@@ -21,17 +20,6 @@ import org.loxf.service.impl.WhoGirl;
  *
  */
 public class ExportTest {
-
-	@Test
-	public void test() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		Service[] services= new Service[3];
-		services[0] = ExportUtil.parse(HelloWorldImpl.class);
-		services[1] = ExportUtil.parse(WhoBoy.class);
-		services[2] = ExportUtil.parse(WhoGirl.class);
-		IProviderManager provMgr = ProviderManager.getProviderManager();
-		provMgr.export(services);
-	}
-	
 	public static void main(String [] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException{
 		Service[] services= new Service[3];
 		services[0] = ExportUtil.parse(HelloWorldImpl.class);
