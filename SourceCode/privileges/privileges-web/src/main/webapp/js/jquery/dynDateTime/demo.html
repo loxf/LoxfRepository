@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=GBK" />
+		<title>dynDateTime: jQuery date time calendar plugin, based on Dynarch calendar </title>
+		
+		<script src="../../jquery/1.8.0/jquery-1.8.0.js"></script>
+		
+		<script type="text/javascript" src="jquery.dynDateTime.js"></script>
+		<script type="text/javascript" src="lang/calendar-zh.js"></script>
+
+		<link rel="stylesheet" type="text/css" media="all" href="css/calendar-blue.css"  />
+
+	</head>
+	<body>
+	
+	<h1>dynDateTime</h1>
+	
+	<p>See project <a href="http://code.google.com/p/dyndatetime/">home page</a> for details.</p>
+	
+		<form action="/nothing/to/post.to">
+			<div>
+				<h3>Default with no options</h3>
+				<script type="text/javascript">
+					jQuery(document).ready(function() {
+						jQuery("#dateDefault").dynDateTime({
+							
+						}); //defaults
+					});
+				</script>
+				<input type="text" name="dateDef" id="dateDefault"/>
+				<hr/>
+	
+    </body>
+</html>

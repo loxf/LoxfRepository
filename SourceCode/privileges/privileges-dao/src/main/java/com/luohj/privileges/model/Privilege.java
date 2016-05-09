@@ -25,12 +25,12 @@ public class Privilege extends BaseBean {
 	/**
 	 * 权限编码
 	 */
-	@Column(value="PRIVILEGE", id=true)
+	@Column("PRIVILEGE")
 	private String privilege;
 	/**
 	 * 权限Id
 	 */
-	@Column("PRIVILEGE_ID")
+	@Column(value="PRIVILEGE_ID", id=true)
 	private Long privilegeId;
 	/**
 	 * 请求URL
@@ -75,7 +75,7 @@ public class Privilege extends BaseBean {
 			String[] s = uri.split("\\/");
 			if(s==null||s.length!=3){
 				throw new BusiRuntimeException("E0001",
-						"当前请求非法，请求形式必须是:context + XXX1/XXX2/XXX3");
+						"当前请求非法，请求形式必须是:context + XXX1/XXX2/XXX3，当前URL：" + uri);
 			}else{
 				module = s[0];
 				childModule = s[1];
