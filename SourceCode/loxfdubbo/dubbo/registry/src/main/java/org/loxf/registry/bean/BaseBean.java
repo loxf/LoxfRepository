@@ -35,9 +35,20 @@ public class BaseBean implements Serializable{
 	}
 
 	public BaseBean(boolean flag){
-		isUpdate = flag;
-		isChanged = flag;
-		lastModifyDate = new Date();
+		update(flag, flag, new Date());
+	}
+	
+	/**
+	 * TODO:更新对象
+	 * @param isUpdate
+	 * @param isChanged
+	 * @param date
+	 * @author:luohj
+	 */
+	public void update(boolean isUpdate, boolean isChanged, Date date){
+		this.isUpdate = isUpdate;
+		this.isChanged = isChanged;
+		this.lastModifyDate = date;
 	}
 	/**
 	 * @return the isUpdate

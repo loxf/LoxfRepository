@@ -18,12 +18,14 @@ public class MapCastList {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static List<?> convert(Map<?, ?> map){
 		if(map!=null){
-			List list = new ArrayList();
-			Iterator it = map.keySet().iterator();
-			while(it.hasNext()){
-				list.add(map.get(it.next().toString()));
+			synchronized(map){
+				List list = new ArrayList();
+				Iterator it = map.keySet().iterator();
+				while(it.hasNext()){
+					list.add(map.get(it.next().toString()));
+				}
+				return list;
 			}
-			return list;
 		}
 		return null;
 	}

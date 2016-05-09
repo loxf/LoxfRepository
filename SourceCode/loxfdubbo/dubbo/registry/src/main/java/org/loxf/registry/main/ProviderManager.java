@@ -5,7 +5,6 @@
  */
 package org.loxf.registry.main;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.UnknownHostException;
@@ -27,6 +26,7 @@ import org.loxf.registry.queue.UploadServiceQueue;
 import org.loxf.registry.thread.ServerHeartBeatThread;
 import org.loxf.registry.thread.UploadServiceThread;
 import org.loxf.registry.utils.ComputerInfoUtil;
+import org.loxf.registry.utils.ExportUtil;
 import org.loxf.registry.utils.MapCastList;
 
 /**
@@ -66,9 +66,18 @@ public class ProviderManager implements IProviderManager {
 	/**
 	 * 配置文件路径
 	 */
-	private String xmlPath;
+	private String xmlPath = "org.loxf";
 
 	ProviderManager() {
+		init();
+		start();
+		mgr = this;
+	}
+
+	ProviderManager(String path) {
+		if (!StringUtils.isEmpty(path)) {
+			this.xmlPath = path;
+		}
 		init();
 		start();
 		mgr = this;
@@ -85,14 +94,23 @@ public class ProviderManager implements IProviderManager {
 		return mgr;
 	}
 
+	public static IProviderManager getProviderManager(String path) {
+		if (mgr == null) {
+			synchronized (ProviderManager.class) {
+				if (mgr == null) {
+					mgr = new ProviderManager(path);
+				}
+			}
+		}
+		return mgr;
+	}
+
 	/**
 	 * TODO:初始化
 	 * 
 	 * @author:luohj
 	 */
 	void init() {
-		parseXml(xmlPath);
-
 		this.registryCenter = new RegistryCenter();
 		registryCenter.setIp("127.0.0.1");
 		registryCenter.setPort(20880);
@@ -110,19 +128,26 @@ public class ProviderManager implements IProviderManager {
 		client.setPort(30200);// 建议不要手工设置，从30200开始自动设置，端口被占，自动加1重设。
 		client.setType("SERV");
 		client.setTimeout(60000);
-
+		
 		isRuning = false;
-
 	}
 
 	/**
-	 * TODO:解析XML配置文件
+	 * TODO:解析生产者
 	 * 
 	 * @param path
+	 *            根路径
 	 * @author:luohj
+	 * @return
 	 */
-	void parseXml(String path) {
-
+	Service[] parseService(String path) {
+		try {
+			return ExportUtil.parse(path);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**
@@ -148,22 +173,26 @@ public class ProviderManager implements IProviderManager {
 		}
 		new Thread(new Runnable() {
 			public void run() {
+				boolean flag = false;//是否上载
 				synchronized (services) {
 					Date now = new Date();
 					HashMap<String, Client> clients = service.getClients();
 					Client c = new Client(invo.getIp(), invo.getAppName(), invo.isAsyn());
-					if(clients==null){
-						clients = new HashMap<String, Client> ();
+					if (clients == null) {
+						clients = new HashMap<String, Client>();
+						service.setClients(clients);
 					}
 					if (!clients.containsKey(c.toString())) {
 						// 更新客户端信息
-						c.setUpdate(true);
-						c.setChanged(true);
-						c.setLastModifyDate(now);
+						c.update(true, true, now);
 						clients.put(c.toString(), c);
+						flag = true;
 					}
 					HashMap<String, Method> methods = service.getMethod();
-
+					if(methods==null){
+						methods = new HashMap<String, Method> ();
+						service.setMethod(methods);
+					}
 					Class<?>[] paramTypes = invo.getMethod().getParameterTypes();
 					String[] params = new String[paramTypes.length];
 					int i = 0;
@@ -174,15 +203,21 @@ public class ProviderManager implements IProviderManager {
 							.append(StringUtils.join(params, " ,")).append(")").toString();
 					if (!methods.containsKey(methodKey)) {
 						Method m = new Method(invo.getMethod().getName(), params);
-						c.setUpdate(true);
-						c.setChanged(true);
-						m.setLastModifyDate(now);
+						m.update(true, true, now);
 						// 更新方法信息
 						methods.put(methodKey, m);
+						flag = true;
+					}
+					if(flag){
+						service.update(true, false, now);
+					} else {
+						service.update(false, false, now);
 					}
 				}
-				synchronized (queue) {
-					queue.add(service);
+				if(flag){
+					synchronized (queue) {
+						queue.add(service);
+					}
 				}
 			}
 		}).start();
@@ -230,8 +265,9 @@ public class ProviderManager implements IProviderManager {
 	 * @return
 	 * @author:luohj
 	 */
-	public Service export(File file) {
-		return null;
+	public void export() {
+		Service[] services = parseService(xmlPath);
+		export(services);
 	}
 
 	/**

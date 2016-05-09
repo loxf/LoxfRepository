@@ -35,4 +35,10 @@ public interface IClientManager {
 	 * @author:luohj
 	 */
 	void start();
+	/**
+	 * TODO:客户端是否准备好
+	 * @return
+	 * @author:luohj
+	 */
+	public boolean isReady();
 }

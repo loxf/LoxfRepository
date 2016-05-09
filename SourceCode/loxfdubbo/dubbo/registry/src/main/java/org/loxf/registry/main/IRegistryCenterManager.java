@@ -23,6 +23,12 @@ public interface IRegistryCenterManager {
 	 * @author:luohj
 	 */
 	public void pauseServer(Server server);  
+	/**
+	 * TODO:停止服务器
+	 * @param server
+	 * @author:luohj
+	 */
+	public void stopServer(Server server);  
     /**
      * TODO:恢复服务器
      * @param server

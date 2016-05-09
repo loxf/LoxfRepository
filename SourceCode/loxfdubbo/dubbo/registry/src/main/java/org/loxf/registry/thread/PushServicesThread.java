@@ -61,6 +61,7 @@ public class PushServicesThread {
 											in.close();
 											out.close();
 										}
+										queue.clear();
 									} catch (NumberFormatException e) {
 										e.printStackTrace();
 									} catch (UnknownHostException e) {
@@ -77,11 +78,10 @@ public class PushServicesThread {
 									}
 								}
 							}
-							queue.clear();
 						}
 					}
 					try {
-						Thread.sleep(5000);
+						Thread.sleep(10000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}

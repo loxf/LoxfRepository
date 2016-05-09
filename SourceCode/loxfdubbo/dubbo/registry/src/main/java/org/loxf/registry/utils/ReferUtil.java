@@ -21,6 +21,13 @@ public class ReferUtil {
 	public static void refer(Object o){
 		ApplicationContext ctx = ApplicationContext.getInstance();
 		IClientManager mgr = ClientManager.getClientManager();
+		while(!mgr.isReady()){
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		// 解析
 		// List<Map<String, ?>> list = ReferUtil.parse(o.getClass());
 		try {
