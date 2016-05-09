@@ -44,7 +44,7 @@ public class ClientLifeMgrThread {
 								Server server = new Server();
 								server.setServerAddr(client.getIp());
 								server.setServerPort(client.getPort());
-								serverManager.stopServer(server);
+								serverManager.stopServer(server, false);
 							}
 							needDel.put(key, key);
 						}

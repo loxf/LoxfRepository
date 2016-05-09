@@ -26,9 +26,10 @@ public interface IRegistryCenterManager {
 	/**
 	 * TODO:停止服务器
 	 * @param server
+	 * @param must 强制停机
 	 * @author:luohj
 	 */
-	public void stopServer(Server server);  
+	public void stopServer(Server server, boolean must);  
     /**
      * TODO:恢复服务器
      * @param server

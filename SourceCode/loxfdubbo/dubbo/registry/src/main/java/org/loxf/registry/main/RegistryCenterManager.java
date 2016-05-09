@@ -133,29 +133,31 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	 * @see org.loxf.registry.main.IRegistryCenterManager#stopServer(org.loxf.registry.bean.Server)
 	 */
 	@Override
-	public void stopServer(Server server) {
-		// 最后确认一次生产者是否真的段了
+	public void stopServer(Server server, boolean must) {
+		// 最后确认一次生产者是否真的断了，强制停机不需要校验
 		boolean flag = true;
-		Socket socket = null;
-		try {
-			socket = new Socket(server.getServerAddr(), server.getServerPort());
-			flag = false;
-		} catch (NumberFormatException e0) {
-			e0.printStackTrace();
-		} catch (UnknownHostException | ConnectException e1) {
-			e1.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (socket != null) {
-				try {
-					socket.close();
-				} catch (IOException e) {
-					e.printStackTrace();
+		if(!must){ 
+			Socket socket = null;
+			try {
+				socket = new Socket(server.getServerAddr(), server.getServerPort());
+				flag = false;
+			} catch (NumberFormatException e0) {
+				e0.printStackTrace();
+			} catch (UnknownHostException | ConnectException e1) {
+				e1.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (socket != null) {
+					try {
+						socket.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
-		if (flag)
+		if (must || (!must&&flag))
 			center.stopServer(server);
 	}
 

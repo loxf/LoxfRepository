@@ -85,10 +85,12 @@ public class RegistryContainers extends BaseBean {
 						if (methods != null) {
 							@SuppressWarnings("unchecked")
 							List<Method> tmpMethods = (List<Method>) MapCastList.convert(service.getMethod());
-							for (Method tmpMethod : tmpMethods) {
-								if (tmpMethod.isUpdate() && tmpMethod.isChanged()) {
-									tmpMethod.setLastModifyDate(now);
-									methods.put(tmpMethod.toString(), tmpMethod);
+							if(tmpMethods!=null){
+								for (Method tmpMethod : tmpMethods) {
+									if (tmpMethod.isUpdate() && tmpMethod.isChanged()) {
+										tmpMethod.setLastModifyDate(now);
+										methods.put(tmpMethod.toString(), tmpMethod);
+									}
 								}
 							}
 						} else {
@@ -103,10 +105,12 @@ public class RegistryContainers extends BaseBean {
 						if (clients != null) {
 							@SuppressWarnings("unchecked")
 							List<Client> tmpClients = (List<Client>) MapCastList.convert(service.getClients());
-							for (Client tmpClient : tmpClients) {
-								if (tmpClient.isUpdate() && tmpClient.isChanged()) {
-									tmpClient.setLastModifyDate(now);
-									clients.put(tmpClient.toString(), tmpClient);
+							if(tmpClients!=null){
+								for (Client tmpClient : tmpClients) {
+									if (tmpClient.isUpdate() && tmpClient.isChanged()) {
+										tmpClient.setLastModifyDate(now);
+										clients.put(tmpClient.toString(), tmpClient);
+									}
 								}
 							}
 
