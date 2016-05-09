@@ -7,7 +7,10 @@ package org.loxf.registry.utils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 import org.loxf.registry.annotation.Provider;
 import org.loxf.registry.bean.Method;
@@ -30,11 +33,14 @@ public class ExportUtil {
 					Provider provider = clazz.getAnnotation(Provider.class);
 					if (provider != null) {
 						Service service = new Service();
-						service.setAsyn(provider.asyn());
+						if (!provider.interfaces().isInterface()) {
+							throw new IllegalArgumentException(
+									"The " + provider.interfaces().getName() + " must be interface class!");
+						}
 						service.setInterfaces(provider.interfaces().getName());
-						service.setImplClazz(provider.impl().getName());
-						service.setServiceName(StringUtils.isEmpty(provider.group()) ? ""
-								: provider.group());
+						service.setImplClazz(clazz.getName());
+						service.setAsyn(provider.asyn());
+						service.setServiceName(StringUtils.isEmpty(provider.group()) ? "" : provider.group());
 						service.setTimeout(provider.timeout());
 						service.setStatus(provider.status().getValue());
 
@@ -69,17 +75,48 @@ public class ExportUtil {
 						}
 						return service;
 					} else {
-						throw new RuntimeException("服务[" + clazz.getName() + "]暴露失败，当前实现类未注解为服务提供者。");
+						// throw new RuntimeException("服务[" + clazz.getName() +
+						// "]暴露失败，当前实现类未注解为服务提供者。");
 					}
 				}
 			}
 			if (!flag) {
-				throw new RuntimeException("服务[" + clazz.getName() + "]暴露失败，当前实现类未注解为服务提供者。");
+				// throw new RuntimeException("服务[" + clazz.getName() +
+				// "]暴露失败，当前实现类未注解为服务提供者。");
 			}
-			return null;
 		} else {
-			throw new RuntimeException("服务[" + clazz.getName() + "]暴露失败，当前实现类未注解为服务提供者。");
+			// throw new RuntimeException("服务[" + clazz.getName() +
+			// "]暴露失败，当前实现类未注解为服务提供者。");
 		}
+		return null;
 	}
 
+	/**
+	 * TODO:方法描述
+	 * @param packagePath 包路径，不支持通配
+	 * @return
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @author:luohj
+	 */
+	public static Service[] parse(String packagePath) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Set<Class<?>> set = ScanPackage.getClasses(packagePath);
+		List<Service> serviceList = new ArrayList<Service>();
+		for (Class<?> cl : set) {
+			Service srv = ExportUtil.parse(cl);
+			if (srv != null) {
+				serviceList.add(srv);
+			}
+		}
+		if(serviceList.isEmpty()){
+			return null;
+		}
+		Service[] srvs = new Service[serviceList.size()];
+		return serviceList.toArray(srvs);
+	}
 }

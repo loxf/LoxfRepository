@@ -13,7 +13,7 @@ import org.loxf.registry.annotation.Provider;
  * @author lenovo
  *
  */
-@Provider(impl = WhoBoy.class, interfaces = IWho.class, group = "WhoBoy")
+@Provider(interfaces = IWho.class, group = "WhoBoy")
 public class WhoBoy implements IWho {
 
 	/** (non-Javadoc)

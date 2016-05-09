@@ -13,7 +13,7 @@ import org.loxf.registry.annotation.Provider;
  * @author lenovo
  *
  */
-@Provider(impl = HelloWorldImpl.class, interfaces = IHello.class)
+@Provider(interfaces = IHello.class)
 public class HelloWorldImpl implements IHello {
 	/** (non-Javadoc)
 	 * @see org.loxf.service.interfaces.IHello#sayHi()

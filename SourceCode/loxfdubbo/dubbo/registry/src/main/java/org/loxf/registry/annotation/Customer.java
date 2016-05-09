@@ -17,7 +17,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Customer {
-	public Class<?> interfaces();
 	public String group() default "";
 	public boolean asyn() default false;
 	public String pollingType() default "";

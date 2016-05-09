@@ -148,8 +148,8 @@ public class ClientManager implements IClientManager {
 				new InvocationHandler() {
 					public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] arguments) throws Throwable {
 						// 负载均衡获取服务端
-						Server server = loadBalancingServer(
-								interfaceClass.getName() + (StringUtils.isEmpty(group) ? "" : ":" + group), method);
+						String key = interfaceClass.getName() + (StringUtils.isEmpty(group) ? "" : ":" + group);
+						Server server = loadBalancingServer(key, method);
 						if (server.getServerAddr() == null || server.getServerAddr().length() == 0)
 							throw new IllegalArgumentException("Host == null!");
 						if (server.getServerPort() <= 0 || server.getServerPort() > 65535)
@@ -275,8 +275,11 @@ public class ClientManager implements IClientManager {
 						} finally {
 							if (socket != null)
 								socket.close();
+							Thread.sleep(heartBeatTime);
 						}
 					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
@@ -416,7 +419,7 @@ public class ClientManager implements IClientManager {
 	public Server loadBalancingServer(String key, java.lang.reflect.Method method) {
 		Service service = this.getService(key);
 		if(service==null){
-			throw new RuntimeException("在消费端未找到当前service的定义！"+ key);
+			throw new RuntimeException("未找到当前service的定义！"+ key);
 		}
 		// TODO 负载均衡算法，方法级>服务级>客户端总定义
 		String polling = StringUtils.isEmpty(service.getPollingType()) ? this.pollingType : service.getPollingType();

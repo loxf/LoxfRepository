@@ -19,7 +19,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Provider {
 	public Class<?> interfaces();
-	public Class<?> impl();
 	public String group() default "";
 	public Status status() default Status.EFF;
 	public int timeout() default 0;

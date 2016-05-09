@@ -15,15 +15,11 @@ import org.loxf.registry.utils.BaseRefer;
  *
  */
 public class HelloAction extends BaseRefer {
-	public HelloAction(){
-		super.instancesBean(this);
-	}
-	
-	@Customer(interfaces = IHello.class)
-	public IHello hello;
-	@Customer(interfaces = IWho.class, group = "WhoBoy")
-	public IWho whoBoy;
-	@Customer(interfaces = IWho.class, group = "WhoGirl")
+	@Customer
+	private IHello hello;
+	@Customer(group = "WhoBoy")
+	protected IWho whoBoy;
+	@Customer(group = "WhoGirl")
 	public IWho whoGirl;
 	
 	public void hello(){

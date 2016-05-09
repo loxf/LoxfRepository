@@ -14,7 +14,7 @@ import org.loxf.registry.main.IClientManager;
 import org.springframework.util.StringUtils;
 
 /**
- * @author {luohj}
+ * @author luohj
  *
  */
 public class ReferUtil {
@@ -25,12 +25,12 @@ public class ReferUtil {
 		// List<Map<String, ?>> list = ReferUtil.parse(o.getClass());
 		try {
 			// 获取其全部的字段描述
-			Field[] fields = o.getClass().getFields();
+			Field[] fields = o.getClass().getDeclaredFields();
 			for (Field f : fields) {
 				if (f != null && f.isAnnotationPresent(Customer.class)) {
 					Customer refer = f.getAnnotation(Customer.class);
 					String group = refer.group();
-					Class<?> interfaces = refer.interfaces();
+					Class<?> interfaces = f.getType();
 					boolean asyn = refer.asyn();
 					String key = interfaces.toString()
 							+ (StringUtils.isEmpty(group) ? "" : ":" + group);

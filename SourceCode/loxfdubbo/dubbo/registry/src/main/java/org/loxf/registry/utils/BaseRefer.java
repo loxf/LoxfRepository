@@ -10,8 +10,11 @@ package org.loxf.registry.utils;
  *
  */
 public class BaseRefer {
+	public BaseRefer(){
+		instancesBean(this);
+	}
 	/**
-	 * 实例化bean
+	 * 实例化bean，注入远程调用
 	 * 
 	 * @param clazz
 	 * @author:luohj
