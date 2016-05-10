@@ -24,8 +24,19 @@ import org.loxf.registry.thread.PushServicesThread;
  *
  */
 public class RegistryCenterManager implements IRegistryCenterManager {
-
+	private static IRegistryCenterManager mgr ;
+	/**
+	 * 监听（心跳/服务注册/全量服务获取）
+	 */
 	private RpcListener listener;
+	/**
+	 * 推送服务线程
+	 */
+	private PushServicesThread pushThread ;
+	/**
+	 * 客户端生命周期管理
+	 */
+	private ClientLifeMgrThread clientLifeThread;
 	private boolean isRuning = true;
 	private RegistryContainers center;
 	private int port;
@@ -33,13 +44,40 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	 * 心跳存活队列
 	 */
 	private Map<String, AliveClient> aliveClients;
+	
+	public static IRegistryCenterManager getInstance(){
+		if(mgr==null){
+			synchronized(RegistryCenterManager.class){
+				if(mgr==null){
+					mgr = new RegistryCenterManager(20880);
+				}
+			}
+		}
+		return mgr;
+	}	
 
-	public RegistryCenterManager(int port) {
+	RegistryCenterManager(int port) {
 		this.port = port;
 		this.center = new RegistryContainers();
 		this.aliveClients = new HashMap<String, AliveClient>();
 	}
 
+
+	/** 
+	 * 停止注册中心
+	 * @see org.loxf.registry.main.IRegistryCenterManager#stop()
+	 */
+	@Override
+	public void stop() {
+		listener.stop();
+		pushThread.stop();
+		clientLifeThread.stop();
+	}
+	
+	/** 
+	 * 启动注册中心
+	 * @see org.loxf.registry.main.IRegistryCenterManager#start()
+	 */
 	public void start() {
 		System.out.println("启动注册中心服务器");
 		try {
@@ -51,16 +89,16 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 		}
 		System.out.println("启动推送服务");
 		try {
-			PushServicesThread thread = new PushServicesThread(getIssuedQueue(), aliveClients);
-			thread.start();
+			pushThread = new PushServicesThread(getIssuedQueue(), aliveClients);
+			pushThread.start();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
 		System.out.println("启动生产者/消费者心跳维护线程");
 		try {
-			ClientLifeMgrThread thread = new ClientLifeMgrThread(this, (HashMap<String, AliveClient>) aliveClients);
-			thread.start();
+			clientLifeThread = new ClientLifeMgrThread(this, (HashMap<String, AliveClient>) aliveClients);
+			clientLifeThread.start();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -103,8 +141,7 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	 */
 	@Override
 	public void pauseServer(Server server) {
-		// TODO 等待实现
-		// center.pauseServer(server);
+		 center.pauseServer(server);
 	}
 
 	/**
@@ -112,8 +149,7 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	 */
 	@Override
 	public void resumeServer(Server server) {
-		// TODO 等待实现
-		server.setStatus("EFF");
+		center.resumeServer(server);
 	}
 
 	/**
@@ -173,7 +209,7 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	}
 
 	/**
-	 * TODO:服务端/消费端存活队列（有心跳）
+	 * 服务端/消费端存活队列（有心跳）
 	 * 
 	 * @param client
 	 *            消费端或者服务端
@@ -215,10 +251,5 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	 */
 	public Map<String, Service> getServices() {
 		return this.center.getServices();
-	}
-
-	public static void main(String[] args) {
-		RegistryCenterManager mgr = new RegistryCenterManager(20880);
-		mgr.start();
 	}
 }

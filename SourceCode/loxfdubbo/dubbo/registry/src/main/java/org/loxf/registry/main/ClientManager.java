@@ -74,7 +74,6 @@ public class ClientManager implements IClientManager {
 	ClientManager(){
 		init();
 		start();
-		mgr = this;
 	}
 	public static IClientManager getClientManager() {
 		if (mgr == null) {
@@ -88,7 +87,7 @@ public class ClientManager implements IClientManager {
 	}
 	
 	/**
-	 * TODO:初始化方法
+	 * 初始化方法
 	 * 
 	 * @author:luohj
 	 */
@@ -130,7 +129,7 @@ public class ClientManager implements IClientManager {
 	}
 	
 	/**
-	 * TODO:引用服务
+	 * 引用服务
 	 * 
 	 * @param <T>
 	 *            接口泛型
@@ -163,7 +162,7 @@ public class ClientManager implements IClientManager {
 						if(service==null){
 							throw new RuntimeException("未找到当前service的定义！"+ key);
 						}
-						// TODO 负载均衡算法，方法级>服务级>客户端总定义
+						// 负载均衡算法，方法级>服务级>客户端总定义
 						String polling = StringUtils.isEmpty(service.getPollingType()) ? pollingType : service.getPollingType();
 						HashMap<String,Method> ms = service.getMethod();
 						if(ms!=null){
@@ -248,7 +247,7 @@ public class ClientManager implements IClientManager {
 	}
 
 	/**
-	 * (non-Javadoc)
+	 * TODO 消费者启动start
 	 * 
 	 * @see org.loxf.registry.main.IClientManager#start()
 	 */
@@ -274,7 +273,7 @@ public class ClientManager implements IClientManager {
 	}
 
 	/**
-	 * TODO:第一次启动，主动向服务端获取一次全量服务列表<br>
+	 * 第一次启动，主动向服务端获取一次全量服务列表<br>
 	 * 协议：<br>
 	 * in {int:2}<br>
 	 * out {Map<String, Service> services}<br>
@@ -328,7 +327,7 @@ public class ClientManager implements IClientManager {
 	}
 
 	/**
-	 * TODO:更新服务
+	 * 更新服务
 	 * 
 	 * @param services
 	 * @author:luohj
@@ -398,7 +397,7 @@ public class ClientManager implements IClientManager {
 	}
 
 	/**
-	 * TODO:根据key获取Service
+	 * 根据key获取Service
 	 * 
 	 * @param key
 	 * @return
@@ -412,7 +411,7 @@ public class ClientManager implements IClientManager {
 	}
 
 	/**
-	 * TODO:获取服务端信息
+	 * 获取服务端信息
 	 * 
 	 * @param key
 	 * @return
@@ -425,7 +424,7 @@ public class ClientManager implements IClientManager {
 	}
 
 	/**
-	 * TODO:软负载获取服务端信息
+	 * 软负载获取服务端信息
 	 * 
 	 * @param list
 	 * @return
@@ -450,7 +449,7 @@ public class ClientManager implements IClientManager {
 		return null;
 	}
 	/**
-	 * TODO:软负载获取服务端信息
+	 * 软负载获取服务端信息
 	 * 
 	 * @param list
 	 * @return

@@ -16,7 +16,7 @@ import org.loxf.registry.invocation.Invocation;
  */
 public interface IProviderManager {
 	/**
-	 * TODO:调用方法
+	 * 调用方法
 	 * @param invo
 	 * @return
 	 * @author:luohj
@@ -27,26 +27,26 @@ public interface IProviderManager {
 	 */
 	Object call(Invocation invo) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException;
     /**
-     * TODO:暴露服务
+     * 暴露服务
      * @param service
      * @author:luohj
      */
     public void export(Service service);  
     /**
-     * TODO:暴露服务组
+     * 暴露服务组
      * @param service
      * @author:luohj
      */
     public void export(Service[] services);  
     /**
-     * TODO:暴露服务
+     * 暴露服务
      * @param file
      * @return
      * @author:luohj
      */
     public void export() ;
     /**
-     * TODO:暴露服务(直接暴露)
+     * 暴露服务(直接暴露)
      * @param interfaces
      * @param impl
      * @param group
@@ -54,25 +54,25 @@ public interface IProviderManager {
      */
     public void export(Class<?> interfaces, Class<?> impl, String group);
     /**
-     * TODO:监听是否运行
+     * 监听是否运行
      * @return
      * @author:luohj
      */
     public boolean isRunning();  
     /**
-     * TODO:启动中心
+     * 启动中心
      * @return
      * @author:luohj
      */
     public boolean start();  
     /**
-     * TODO:获取监听端口
+     * 获取监听端口
      * @return
      * @author:luohj
      */
     public int getPort(); 
     /**
-     * TODO:重发服务（注册中心拓机重启后使用）
+     * 重发服务（注册中心拓机重启后使用）
      * @author:luohj
      */
     public void reUploadService();

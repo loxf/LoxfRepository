@@ -72,6 +72,12 @@ public class UploadServiceThread {
 										Object result = in.readObject();
 										if(result instanceof Throwable){
 											throw (Throwable)result; 
+										} else if(result instanceof Boolean){
+											if((boolean)result){
+												for(Service service : services){
+													System.out.println(service.toString()+"注册成功！");
+												}
+											}
 										}
 									} catch (ClassNotFoundException e) {
 										e.printStackTrace();

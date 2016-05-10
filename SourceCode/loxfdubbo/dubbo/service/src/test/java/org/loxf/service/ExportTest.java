@@ -15,6 +15,17 @@ import org.loxf.registry.main.ProviderManager;
  *
  */
 public class ExportTest {
+	/**
+	 * TODO 启动服务端MAIN方法
+	 * @param args
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @author:luohj
+	 */
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		IProviderManager mgr = ProviderManager.getProviderManager();

@@ -38,6 +38,11 @@ public class HelloAction extends BaseRefer {
 		System.out.println(whoBoy.iam(name));
 	}
 	
+	/**
+	 * TODO 启动客户端MAIN方法
+	 * @param args
+	 * @author:luohj
+	 */
 	public static void main(String[] args){
 		HelloAction helleAction = new HelloAction();
 		while(true){
