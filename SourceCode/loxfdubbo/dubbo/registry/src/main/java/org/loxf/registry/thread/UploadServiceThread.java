@@ -52,55 +52,47 @@ public class UploadServiceThread {
 					if(registryCenter.getStatus().equals("EFF")){// 注册中心生效的时候，上发，保持状态、失效状态均不能上发
 						if(!queue.isEmpty()){
 							synchronized(queue){
+								Service[] services = new Service[queue.size()];
+								queue.toArray(services);
+								Socket socket = null;
 								try {
-									Service[] services = new Service[queue.size()];
-									int i=0;
-									while(!queue.isEmpty()){
-										services[i++]=queue.poll();
-									}
-									Socket socket = null;
+									socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
+									ObjectOutputStream out = new ObjectOutputStream (socket.getOutputStream());
+									// 向注册中心请求全量服务列表
+									/**
+									 * 协议：<br>
+									 * in {int:1, object:LIST/SINGLE, Object Service[] services/Service service}<br>
+									 * out {(boolean)Object }<br>
+									 */
+									out.writeInt(1);
+									out.writeObject("LIST");
+									out.writeObject(services);
+									ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 									try {
-										socket = new Socket(registryCenter.getIp(), registryCenter.getPort());
-										ObjectOutputStream out = new ObjectOutputStream (socket.getOutputStream());
-										// 向注册中心请求全量服务列表
-										/**
-										 * 协议：<br>
-										 * in {int:1, object:LIST/SINGLE, Object Service[] services/Service service}<br>
-										 * out {(boolean)Object }<br>
-										 */
-										out.writeInt(1);
-										out.writeObject("LIST");
-										out.writeObject(services);
-										ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-										try {
-											Object result = in.readObject();
-											if(result instanceof Throwable){
-												throw (Throwable)result; 
-											}
-										} catch (ClassNotFoundException e) {
-											e.printStackTrace();
-										} catch (Throwable e) {
-											e.printStackTrace();
-										} finally {
-											in.close();
-											out.close();
+										Object result = in.readObject();
+										if(result instanceof Throwable){
+											throw (Throwable)result; 
 										}
-									} catch (UnknownHostException e) {
+									} catch (ClassNotFoundException e) {
 										e.printStackTrace();
-									} catch (IOException e) {
+									} catch (Throwable e) {
 										e.printStackTrace();
-									} finally{
-										try {
-											if(socket !=null)
-												socket.close();
-										} catch (IOException e) {
-											e.printStackTrace();
-										}
+									} finally {
+										in.close();
+										out.close();
 									}
 									queue.clear();
-									Thread.sleep(sleepTime);
-								} catch (InterruptedException e) {
+								} catch (UnknownHostException e) {
 									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								} finally{
+									try {
+										if(socket !=null)
+											socket.close();
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
 								}
 							}
 						}

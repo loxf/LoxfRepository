@@ -5,15 +5,12 @@
  */
 package org.loxf.registry.queue;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.loxf.registry.bean.Service;
 
 /**
  * @author luohj
  *
  */
-public class UploadServiceQueue extends ConcurrentLinkedQueue<Service> {
+public class UploadServiceQueue extends UniqueQueue<Service> {
 	private static final long serialVersionUID = 1L;
-	
 }

@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -59,7 +60,17 @@ public class ClientManager implements IClientManager {
 	 * 负载配置
 	 */
 	private String pollingType ;
+	/**
+	 * 是否准备好，当第一次获取全部服务后isReady=true
+	 */
+	private boolean isReady = false;
 
+	/**
+	 * @return the isReady
+	 */
+	public boolean isReady() {
+		return isReady;
+	}
 	ClientManager(){
 		init();
 		start();
@@ -86,7 +97,7 @@ public class ClientManager implements IClientManager {
 		registryCenter.setIp("127.0.0.1");
 		registryCenter.setPort(20880);
 
-		heartBeatTime = 30000;
+		heartBeatTime = 10000;
 
 		client = new AliveClient();
 		client.setAppName("CLIENT1");
@@ -147,51 +158,81 @@ public class ClientManager implements IClientManager {
 		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[] { interfaceClass },
 				new InvocationHandler() {
 					public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] arguments) throws Throwable {
-						// 负载均衡获取服务端
 						String key = interfaceClass.getName() + (StringUtils.isEmpty(group) ? "" : ":" + group);
-						Server server = loadBalancingServer(key, method);
-						if (server.getServerAddr() == null || server.getServerAddr().length() == 0)
-							throw new IllegalArgumentException("Host == null!");
-						if (server.getServerPort() <= 0 || server.getServerPort() > 65535)
-							throw new IllegalArgumentException("Invalid port " + server.getServerPort());
-						System.out.println("Get remote service " + interfaceClass.getName() + " from server "
-								+ server.getServerAddr() + ":" + server.getServerPort());
-
-						Socket socket = new Socket(server.getServerAddr(), server.getServerPort());
-						try {
-							ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
-							try {
-								/**
-								 * 协议 in{Invocation invo} out{Object result}
-								 */
-								Invocation invo = new Invocation();
-								invo.setInterfaces(interfaceClass);
-								invo.setGroup(group);
-								org.loxf.registry.invocation.Method m = new org.loxf.registry.invocation.Method();
-								m.setName(method.getName());
-								m.setParameterTypes(method.getParameterTypes());
-								invo.setMethod(m);
-								invo.setParams(arguments);
-								invo.setAppName(client.getAppName());
-								invo.setAsyn(asyn);
-								invo.setIp(client.getIp());
-								output.writeObject(invo);
-								ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
-								try {
-									Object result = input.readObject();
-									if (result instanceof Throwable) {
-										throw (Throwable) result;
-									}
-									return result;
-								} finally {
-									input.close();
-								}
-							} finally {
-								output.close();
-							}
-						} finally {
-							socket.close();
+						Service service = getService(key);
+						if(service==null){
+							throw new RuntimeException("未找到当前service的定义！"+ key);
 						}
+						// TODO 负载均衡算法，方法级>服务级>客户端总定义
+						String polling = StringUtils.isEmpty(service.getPollingType()) ? pollingType : service.getPollingType();
+						HashMap<String,Method> ms = service.getMethod();
+						if(ms!=null){
+							String[] param = new String[method.getParameterTypes().length];
+							int i = 0;
+							for(Class<?> c : method.getParameterTypes()){
+								param[i++] = c.getName();
+							}
+							Method mth = ms.get(new StringBuffer().append(method.getName()).append("(").append(StringUtils.join(param, " ,")).append(")")
+									.toString());
+							if(mth!=null&&!StringUtils.isEmpty(mth.getPollingType())){
+								polling = mth.getPollingType();
+							}
+						}
+						// 获取所有服务端
+						List<Server> servers = getServerListByServiceKey(key, service);
+						while(!servers.isEmpty()){
+							Server server = loadBalancingServer(polling, servers);
+							if (server.getServerAddr() == null || server.getServerAddr().length() == 0)
+								throw new IllegalArgumentException("Host == null!");
+							if (server.getServerPort() <= 0 || server.getServerPort() > 65535)
+								throw new IllegalArgumentException("Invalid port " + server.getServerPort());
+							System.out.println("Get remote service " + interfaceClass.getName() + " from server "
+									+ server.getServerAddr() + ":" + server.getServerPort());
+							Socket socket = null;
+							try {
+								socket = new Socket(server.getServerAddr(), server.getServerPort());
+								ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+								try {
+									/**
+									 * 协议 in{Invocation invo} out{Object result}
+									 */
+									Invocation invo = new Invocation();
+									invo.setInterfaces(interfaceClass);
+									invo.setGroup(group);
+									org.loxf.registry.invocation.Method m = new org.loxf.registry.invocation.Method();
+									m.setName(method.getName());
+									m.setParameterTypes(method.getParameterTypes());
+									invo.setMethod(m);
+									invo.setParams(arguments);
+									invo.setAppName(client.getAppName());
+									invo.setAsyn(asyn);
+									invo.setIp(client.getIp());
+									output.writeObject(invo);
+									ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+									try {
+										Object result = input.readObject();
+										if (result instanceof Throwable) {
+											throw (Throwable) result;
+										}
+										return result;
+									} finally{
+										input.close();
+									}
+								} finally {
+									output.close();
+								}
+							} catch (UnknownHostException e) {
+								servers.remove(server);
+								e.printStackTrace();
+							} catch (ConnectException e) {
+								servers.remove(server);
+								e.printStackTrace();
+							} finally {
+								if(socket!=null)
+									socket.close();
+							}
+						}
+						return null;
 					}
 				});
 	}
@@ -259,6 +300,7 @@ public class ClientManager implements IClientManager {
 								Map<String, Service> result = (Map<String, Service>) in.readObject();
 								services = result;
 								System.out.println(result);
+								isReady = true;
 								break;// 获取成功才能结束
 							} catch (ClassNotFoundException e) {
 								e.printStackTrace();
@@ -268,10 +310,8 @@ public class ClientManager implements IClientManager {
 							}
 						} catch (NumberFormatException e) {
 							e.printStackTrace();
-						} catch (UnknownHostException e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
+						} catch (UnknownHostException |ConnectException e) {
+							e.getMessage();
 						} finally {
 							if (socket != null)
 								socket.close();
@@ -416,30 +456,14 @@ public class ClientManager implements IClientManager {
 	 * @return
 	 * @author:luohj
 	 */
-	public Server loadBalancingServer(String key, java.lang.reflect.Method method) {
-		Service service = this.getService(key);
-		if(service==null){
-			throw new RuntimeException("未找到当前service的定义！"+ key);
-		}
-		// TODO 负载均衡算法，方法级>服务级>客户端总定义
-		String polling = StringUtils.isEmpty(service.getPollingType()) ? this.pollingType : service.getPollingType();
-		HashMap<String,Method> m = service.getMethod();
-		if(m!=null){
-			String[] param = new String[method.getParameterTypes().length];
-			int i = 0;
-			for(Class<?> c : method.getParameterTypes()){
-				param[i++] = c.getName();
-			}
-			Method mth = m.get(new StringBuffer().append(method.getName()).append("(").append(StringUtils.join(param, " ,")).append(")")
-					.toString());
-			if(mth!=null&&!StringUtils.isEmpty(mth.getPollingType())){
-				polling = mth.getPollingType();
-			}
-		}
+	public Server loadBalancingServer(String polling, List<Server> servers) {
+		return loadBalancingServer(servers, polling);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<Server> getServerListByServiceKey(String key, Service service){
 		HashMap<String, Server> servers = service.getServers();
-		@SuppressWarnings("unchecked")
-		List<Server> list = (List<Server>) MapCastList.convert(servers);
-		return loadBalancingServer(list, polling);
+		return (List<Server>) MapCastList.convert(servers);
 	}
 	
 	public static void main(String args[]){

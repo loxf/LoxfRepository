@@ -46,6 +46,13 @@ public class Server extends BaseBean {
 	public String toString() {
 		return new StringBuffer().append(this.serverAddr).append(":").append(this.serverPort).toString();
 	}
+	
+	public boolean equals(Object o){
+		if(this.serverAddr.equals(((Server)o).getServerAddr())&&this.serverPort==((Server)o).getServerPort()){
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * @return the serverAddr

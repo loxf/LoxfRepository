@@ -40,10 +40,17 @@ public class HelloAction extends BaseRefer {
 	
 	public static void main(String[] args){
 		HelloAction helleAction = new HelloAction();
-		helleAction.hello();
-		helleAction.whoBoy();
-		helleAction.iam("Li lei");
-		helleAction.whoGirl();
-		helleAction.iam("Han Meimei");
+		while(true){
+			helleAction.hello();
+			helleAction.whoBoy();
+			helleAction.iam("Li lei");
+			helleAction.whoGirl();
+			helleAction.iam("Han Meimei");
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
