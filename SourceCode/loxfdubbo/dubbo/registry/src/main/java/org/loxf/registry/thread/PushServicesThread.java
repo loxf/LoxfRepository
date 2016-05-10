@@ -25,13 +25,21 @@ import org.loxf.registry.utils.MapCastList;
 public class PushServicesThread {
 	private IssuedQueue queue;
 	private Map<String, AliveClient> aliveClients;
+	Thread t = null;
 	
 	public PushServicesThread(IssuedQueue queue, Map<String, AliveClient> aliveClients){
 		this.queue = queue;
 		this.aliveClients = aliveClients;
 	}
+	
+	public void stop(){
+		if(t!=null&& t.isInterrupted()){
+			t.interrupt();
+		}
+	}
+	
 	public void start() {
-		new Thread(new Runnable() {
+		t = new Thread(new Runnable() {
 			public void run() {
 				while(true){
 					if(!queue.isEmpty()){
@@ -87,6 +95,7 @@ public class PushServicesThread {
 					}
 				}
 			}
-		}).start();
+		});
+		t.start();
 	}
 }

@@ -22,6 +22,7 @@ public class RpcListener {
 	private IRegistryCenterManager serverManager;
 	private int port;
 	private int maxConnection = 1000 ;
+	Thread t = null;
 
 	public RpcListener(IRegistryCenterManager serverManager) throws IOException {
 		this.serverManager = serverManager;
@@ -47,12 +48,18 @@ public class RpcListener {
 	public ServerSocket getRpcListen() {
 		return server;
 	}
+	
+	public void stop(){
+		if(t!=null && t.isInterrupted()){
+			t.interrupt();
+		}
+	}
 
 	/**
-	 * 监听
+	 * 启动监听
 	 */
 	public void start() {
-		new Thread(new Runnable() {
+		t = new Thread(new Runnable() {
 			public void run() {
 				while (true) {
 					try {
@@ -118,7 +125,8 @@ public class RpcListener {
 					}
 				}
 			}
-		}).start();
+		});
+		t.start();
 	}
 	
 }

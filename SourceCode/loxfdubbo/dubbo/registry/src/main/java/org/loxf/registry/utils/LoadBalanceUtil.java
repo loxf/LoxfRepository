@@ -16,7 +16,7 @@ import java.util.Random;
  */
 public class LoadBalanceUtil {
 	/**
-	 * TODO:随机算法
+	 * 随机算法
 	 * @param collection
 	 * @param type
 	 * @return
@@ -29,7 +29,7 @@ public class LoadBalanceUtil {
 		return list.get(i);
 	}
 	/**
-	 * TODO:轮询算法
+	 * 轮询算法
 	 * @param collection
 	 * @param type
 	 * @return
@@ -40,7 +40,7 @@ public class LoadBalanceUtil {
 		return null;
 	}
 	/**
-	 * TODO:加权轮询(WRR)
+	 * 加权轮询(WRR)
 	 * @param collection
 	 * @param type
 	 * @return
@@ -51,7 +51,7 @@ public class LoadBalanceUtil {
 		return null;
 	}
 	/**
-	 * TODO:动态轮询(DYNC_POLLING)
+	 * 动态轮询(DYNC_POLLING)
 	 * @param collection
 	 * @param type
 	 * @return
@@ -62,7 +62,7 @@ public class LoadBalanceUtil {
 		return null;
 	}
 	/**
-	 * TODO:最少连接算法
+	 * 最少连接算法
 	 * @param collection
 	 * @param type
 	 * @return
@@ -73,7 +73,7 @@ public class LoadBalanceUtil {
 		return null;
 	}
 	/**
-	 * TODO:观察算法
+	 * 观察算法
 	 * @param collection
 	 * @param type
 	 * @return
@@ -84,7 +84,7 @@ public class LoadBalanceUtil {
 		return null;
 	}
 	/**
-	 * TODO:预判算法
+	 * 预判算法
 	 * @param collection
 	 * @param type
 	 * @return

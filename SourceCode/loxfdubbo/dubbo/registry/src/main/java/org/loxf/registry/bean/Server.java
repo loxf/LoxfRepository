@@ -28,7 +28,7 @@ public class Server extends BaseBean {
 	 */
 	private String serverName;
 	/**
-	 * 提供者状态：有效，暂停服务，失效
+	 * 提供者状态：有效 EFF，暂停服务 PAUSE，失效 EXP
 	 */
 	private String status;
 	/**

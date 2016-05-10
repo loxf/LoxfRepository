@@ -44,7 +44,7 @@ public class RegistryContainers extends BaseBean {
 	}
 
 	/**
-	 * TODO:注册服务组
+	 * 注册服务组
 	 * 
 	 * @param services
 	 * @author:luohj
@@ -58,7 +58,7 @@ public class RegistryContainers extends BaseBean {
 	}
 
 	/**
-	 * TODO:注册服务
+	 * 注册服务
 	 * 
 	 * @param services
 	 * @author:luohj
@@ -171,6 +171,29 @@ public class RegistryContainers extends BaseBean {
 		}
 	}
 	
+	/**
+	 * TODO 等待实现 暂停服务端
+	 * @param server
+	 * @author:luohj
+	 */
+	public void pauseServer(Server server) {
+		
+	}
+
+	/**
+	 * TODO 等待实现 恢复服务端 
+	 * @param server
+	 * @author:luohj
+	 */
+	public void resumeServer(Server server) {
+		
+	}
+	
+	/**
+	 * 停止服务（删除内存数据）
+	 * @param server
+	 * @author:luohj
+	 */
 	public void stopServer(Server server){
 		if(serverMapServices.containsKey(server.toString())){
 			Set<Service> set =serverMapServices.get(server.toString());

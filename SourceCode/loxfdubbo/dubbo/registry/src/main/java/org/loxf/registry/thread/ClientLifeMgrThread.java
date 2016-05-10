@@ -21,14 +21,21 @@ import org.loxf.registry.utils.MapUtils;
 public class ClientLifeMgrThread {
 	IRegistryCenterManager serverManager;
 	HashMap<String, AliveClient> aliveClients;
+	Thread t = null;
 
 	public ClientLifeMgrThread(IRegistryCenterManager serverManager, HashMap<String, AliveClient> aliveClients) {
 		this.serverManager = serverManager;
 		this.aliveClients = aliveClients;
 	}
+	
+	public void stop(){
+		if(t!=null && t.isInterrupted()){
+			t.interrupt();
+		}
+	}
 
 	public void start() {
-		new Thread(new Runnable() {
+		t = new Thread(new Runnable() {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void run() {
@@ -65,6 +72,7 @@ public class ClientLifeMgrThread {
 				}
 			}
 
-		}).start();
+		});
+		t.start();
 	}
 }

@@ -71,7 +71,6 @@ public class ProviderManager implements IProviderManager {
 	ProviderManager() {
 		init();
 		start();
-		mgr = this;
 	}
 
 	ProviderManager(String path) {
@@ -106,7 +105,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	/**
-	 * TODO:初始化
+	 * 初始化
 	 * 
 	 * @author:luohj
 	 */
@@ -133,7 +132,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	/**
-	 * TODO:解析生产者
+	 * 解析生产者
 	 * 
 	 * @param path
 	 *            根路径
@@ -240,7 +239,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	/**
-	 * TODO:暴露服务(直接暴露)
+	 * 暴露服务(直接暴露)
 	 * 
 	 * @param interfaces
 	 * @param impl
@@ -266,6 +265,7 @@ public class ProviderManager implements IProviderManager {
 	 * @author:luohj
 	 */
 	public void export() {
+		System.out.println("服务器：" + client.getIp() + ":" + client.getPort());
 		Service[] services = parseService(xmlPath);
 		export(services);
 	}
@@ -324,7 +324,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	/**
-	 * (non-Javadoc)
+	 * TODO 生产者启动start
 	 * 
 	 * @see org.loxf.registry.main.IProviderManager#start()
 	 */
@@ -383,7 +383,7 @@ public class ProviderManager implements IProviderManager {
 	}
 
 	/**
-	 * TODO:上发服务
+	 * 上发服务
 	 * 
 	 * @author:luohj
 	 */

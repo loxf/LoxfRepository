@@ -39,7 +39,7 @@ public class BaseBean implements Serializable{
 	}
 	
 	/**
-	 * TODO:更新对象
+	 * 更新对象
 	 * @param isUpdate
 	 * @param isChanged
 	 * @param date

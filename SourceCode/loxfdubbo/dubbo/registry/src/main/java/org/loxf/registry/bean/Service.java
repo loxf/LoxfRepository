@@ -232,7 +232,7 @@ public class Service extends BaseBean {
 	}
 
 	/**
-	 * TODO:获取指定的Server
+	 * 获取指定的Server
 	 * @param key
 	 * @return
 	 * @author:luohj
