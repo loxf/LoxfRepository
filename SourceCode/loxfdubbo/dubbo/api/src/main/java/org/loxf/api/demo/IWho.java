@@ -9,7 +9,7 @@ package org.loxf.api.demo;
  * @author lenovo
  *
  */
-public interface IWho {
+public interface IWho extends I {
 	String who();
 	String iam(String name);
 }
