@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.bean.AliveClient;
@@ -25,9 +26,11 @@ import org.loxf.registry.listener.ProviderListener;
 import org.loxf.registry.queue.UploadServiceQueue;
 import org.loxf.registry.thread.ServerHeartBeatThread;
 import org.loxf.registry.thread.UploadServiceThread;
+import org.loxf.registry.utils.CommonUtil;
 import org.loxf.registry.utils.ComputerInfoUtil;
 import org.loxf.registry.utils.ExportUtil;
 import org.loxf.registry.utils.MapCastList;
+import org.loxf.registry.utils.PropertiesUtil;
 
 /**
  * @author luohj
@@ -64,23 +67,11 @@ public class ProviderManager implements IProviderManager {
 	 */
 	private UploadServiceQueue queue = new UploadServiceQueue();
 	/**
-	 * 配置文件路径
+	 * 扫描位置
 	 */
-	private String xmlPath = "org.loxf";
+	private String xmlPath;
 
-	ProviderManager() {
-		init();
-		start();
-	}
-
-	ProviderManager(String path) {
-		if (!StringUtils.isEmpty(path)) {
-			this.xmlPath = path;
-		}
-		init();
-		start();
-		mgr = this;
-	}
+	ProviderManager() {}
 
 	public static IProviderManager getProviderManager() {
 		if (mgr == null) {
@@ -92,41 +83,44 @@ public class ProviderManager implements IProviderManager {
 		}
 		return mgr;
 	}
-
-	public static IProviderManager getProviderManager(String path) {
-		if (mgr == null) {
-			synchronized (ProviderManager.class) {
-				if (mgr == null) {
-					mgr = new ProviderManager(path);
-				}
-			}
-		}
-		return mgr;
-	}
-
+	
 	/**
 	 * 初始化
-	 * 
-	 * @author:luohj
+	 * @throws IOException 
+	 * @see org.loxf.registry.main.IProviderManager#init(java.lang.String)
 	 */
-	void init() {
+	public void init(String path) throws IOException{
+		if(StringUtils.isEmpty(path)){
+			throw new RuntimeException("生产者监听启动失败，未配置config文件路径。");
+		}
+		Properties pro = PropertiesUtil.init(path);
+		init(pro);
+	}
+	/**
+	 * 初始化
+	 * @see org.loxf.registry.main.IProviderManager#init(java.util.Properties)
+	 */
+	public void init(Properties p) {
 		this.registryCenter = new RegistryCenter();
-		registryCenter.setIp("127.0.0.1");
-		registryCenter.setPort(20880);
+		registryCenter.setIp(p.getProperty("registry.ip"));
+		registryCenter.setPort(CommonUtil.valueofInt(p.getProperty("registry.port"), 20880));
 
-		heartBeatTime = 20000;
-		uploadTime = 30000;
+		heartBeatTime = CommonUtil.valueofInt(p.getProperty("server.heartTime"), 10000);
+		uploadTime = CommonUtil.valueofInt(p.getProperty("server.uploadTime"), 30000);
 
 		client = new AliveClient();
-		client.setAppName("SERVER1");
+		client.setAppName(p.getProperty("server.appName"));
 		try {
 			client.setIp(ComputerInfoUtil.getIp());
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		client.setPort(30200);// 建议不要手工设置，从30200开始自动设置，端口被占，自动加1重设。
+		client.setPort(CommonUtil.valueofInt(p.getProperty("server.port"), 30200));// 建议不要手工设置，从30200开始自动设置，端口被占，自动加1重设。
 		client.setType("SERV");
-		client.setTimeout(60000);
+		client.setTimeout(CommonUtil.valueofInt(p.getProperty("server.timeout"), 60000));
+		
+		xmlPath = CommonUtil.valueofString(p.getProperty("server.package"), "org.loxf");
+		this.export();
 		
 		isRuning = false;
 	}
@@ -364,6 +358,7 @@ public class ProviderManager implements IProviderManager {
 			}
 
 		}).start();
+		isRuning = true;
 		return true;
 	}
 

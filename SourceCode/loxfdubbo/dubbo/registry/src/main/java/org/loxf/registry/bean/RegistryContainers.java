@@ -171,6 +171,10 @@ public class RegistryContainers extends BaseBean {
 		}
 	}
 	
+	public Set<Service> getServiceByServer(Server server){
+		return serverMapServices.get(server.toString());
+	}
+	
 	/**
 	 * TODO 等待实现 暂停服务端
 	 * @param server

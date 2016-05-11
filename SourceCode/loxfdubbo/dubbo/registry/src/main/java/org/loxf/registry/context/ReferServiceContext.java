@@ -12,10 +12,10 @@ import java.util.Map;
  * @author luohj
  *
  */
-public class ApplicationContext {
-	private static ApplicationContext ctx ;
+public class ReferServiceContext {
+	private static ReferServiceContext ctx ;
 	private Map<String,Object > map ;
-	ApplicationContext(){
+	ReferServiceContext(){
 		map = new HashMap<String, Object> ();
 	}
 	
@@ -32,11 +32,11 @@ public class ApplicationContext {
 		return map.containsKey(key);
 	}
 	
-	public static ApplicationContext getInstance(){
+	public static ReferServiceContext getInstance(){
 		if(ctx==null){
-			synchronized(ApplicationContext.class){
+			synchronized(ReferServiceContext.class){
 				if(ctx==null){
-					ctx = new ApplicationContext();
+					ctx = new ReferServiceContext();
 				}
 			}
 		}

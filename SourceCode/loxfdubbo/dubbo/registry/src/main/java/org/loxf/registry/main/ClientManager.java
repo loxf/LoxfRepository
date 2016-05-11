@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.bean.AliveClient;
@@ -29,9 +30,11 @@ import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ClientListener;
 import org.loxf.registry.queue.IssuedQueue;
 import org.loxf.registry.thread.ClientHeartBeatThread;
+import org.loxf.registry.utils.CommonUtil;
 import org.loxf.registry.utils.ComputerInfoUtil;
 import org.loxf.registry.utils.LoadBalanceUtil;
 import org.loxf.registry.utils.MapCastList;
+import org.loxf.registry.utils.PropertiesUtil;
 
 /**
  * 消费端管理中心 
@@ -44,6 +47,14 @@ public class ClientManager implements IClientManager {
 	 * 注册中心
 	 */
 	private RegistryCenter registryCenter;
+	/**
+	 * 客户端监听
+	 */
+	private ClientListener listener;
+	/**
+	 * 客户端心跳线程
+	 */
+	private ClientHeartBeatThread thread;
 	/**
 	 * 客户端信息
 	 */
@@ -71,10 +82,8 @@ public class ClientManager implements IClientManager {
 	public boolean isReady() {
 		return isReady;
 	}
-	ClientManager(){
-		init();
-		start();
-	}
+	ClientManager(){}
+	
 	public static IClientManager getClientManager() {
 		if (mgr == null) {
 			synchronized (ProviderManager.class) {
@@ -85,31 +94,40 @@ public class ClientManager implements IClientManager {
 		}
 		return mgr;
 	}
+
+	@Override
+	public void init(String configPath) throws IOException {
+		if(StringUtils.isEmpty(configPath)){
+			throw new RuntimeException("消费者监听启动失败，未配置customerConfig。");
+		}
+		Properties pro = PropertiesUtil.init(configPath);
+		init(pro);
+	}
 	
 	/**
 	 * 初始化方法
 	 * 
 	 * @author:luohj
 	 */
-	public void init() {
+	public void init(Properties properties) {
+		System.out.println("ClientManager initing...");
 		this.registryCenter = new RegistryCenter();
-		registryCenter.setIp("127.0.0.1");
-		registryCenter.setPort(20880);
-
-		heartBeatTime = 10000;
-
+		registryCenter.setIp(properties.getProperty("registry.ip"));
+		registryCenter.setPort(CommonUtil.valueofInt(properties.getProperty("registry.port"), 20880));			
+		heartBeatTime = CommonUtil.valueofInt(properties.getProperty("client.heartTime"), 10000);
 		client = new AliveClient();
-		client.setAppName("CLIENT1");
+		client.setAppName(properties.getProperty("client.appName"));
 		try {
 			client.setIp(ComputerInfoUtil.getIp());
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		client.setPort(30001);
+		client.setPort(CommonUtil.valueofInt(properties.getProperty("client.port"), 20880));
 		client.setType("CUST"); 
-		client.setTimeout(60000);// 默认1分钟
+		client.setTimeout(CommonUtil.valueofInt(properties.getProperty("client.timeout"), 60000));// 默认1分钟
 		
-		pollingType = "RANDOM";
+		pollingType = CommonUtil.valueofString(properties.getProperty("client.pollingType"), "RANDOM");
+		System.out.println("ClientManager init succ");
 	}
 
 	/**
@@ -245,6 +263,12 @@ public class ClientManager implements IClientManager {
 	public void updateServices(IssuedQueue queue) {
 		updateServiceThread(queue);
 	}
+	
+	@Override
+	public void stop(){
+		listener.stop();
+		thread.stop();
+	}
 
 	/**
 	 * TODO 消费者启动start
@@ -253,11 +277,12 @@ public class ClientManager implements IClientManager {
 	 */
 	@Override
 	public void start() {
+		System.out.println("ClientManager starting...");
 		// 第一次启动，主动向服务端获取一次全量服务列表
 		getAllServicesFirstConnect();
 		// 再启动客户端获取服务的监听
 		try {
-			ClientListener listener = new ClientListener(this, client);
+			listener = new ClientListener(this, client);
 			client.setPort(listener.getPort());
 			listener.start();
 		} catch (IOException e) {
@@ -265,11 +290,19 @@ public class ClientManager implements IClientManager {
 		}
 		// 最后启动心跳线程，在注册中心激活客户端，之后注册中心会主动推送有改变的服务
 		try {
-			ClientHeartBeatThread thread = new ClientHeartBeatThread(heartBeatTime, registryCenter, client);
+			thread = new ClientHeartBeatThread(heartBeatTime, registryCenter, client);
 			thread.start();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		while(!mgr.isReady()){
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println("ClientManager start succ");
 	}
 
 	/**

@@ -53,6 +53,11 @@ public class RpcListener {
 		if(t!=null && t.isInterrupted()){
 			t.interrupt();
 		}
+		try {
+			server.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

@@ -18,6 +18,7 @@
 			</div>
 			<div style="display:inline;float:left;width:75%;">
 				<div id="serviceMgrDiv" style="width:100%;margin-left:5px;margin-right:20px">
+					<h1>服务管理</h1>
 					<table style="width:100%;margin-left:5px;margin-right:20px">
 						<tr>
 							<th>服务接口</th>
@@ -36,12 +37,14 @@
 					</table>
 				</div>
 				<div id="serverMgrDiv" style="width:100%;margin-left:5px;margin-right:20px;display:none">
+					<h1>服务器管理</h1>
 					<table style="width:100%;margin-left:5px;margin-right:20px">
 						<tr>
-							<th>服务器类型</th>
-							<th>服务器地址</th>
-							<th>服务器名称</th>
-							<th>超时时间</th>
+							<th width="15%">服务器类型</th>
+							<th width="15%">服务器地址</th>
+							<th width="10%">服务器名称</th>
+							<th width="50%">服务列表</th>
+							<th width="10%">超时时间</th>
 						</tr>
 						<tbody id="serverInfo">
 						</tbody>
@@ -49,6 +52,28 @@
 				</div>
 				<div id="exampleDiv" style="width:100%;margin-left:5px;margin-right:20px;display:none">
 					<h1>示例1</h1>
+					<table style="width:300px">
+						<tr>
+							<th style="width:50%">方法</th>
+							<th style="width:50%">测试</th>
+						</tr>
+						<tr>
+							<td>hello</td>
+							<td><a href="javascript:void(0)" onclick="test('hello')">test</a></td>
+						</tr>
+						<tr>
+							<td>whoBoy</td>
+							<td><a href="javascript:void(0)" onclick="test('whoBoy')">test</a></td>
+						</tr>
+						<tr>
+							<td>whoGirl</td>
+							<td><a href="javascript:void(0)" onclick="test('whoGirl')">test</a></td>
+						</tr>
+						<tr>
+							<td>iam</td>
+							<td><a href="javascript:void(0)" onclick="test('iam')">test</a></td>
+						</tr>
+					</table>					
 				</div>
 			</div>
 		</div>

@@ -27,6 +27,7 @@ public class ClientListener {
 	private ClientManager clientMgr ;
 	private int maxConnection = 1000 ;
 	private int port;
+	private Thread t;
 	
 	/**
 	 * @return the port
@@ -38,6 +39,17 @@ public class ClientListener {
 		this.clientMgr = clientMgr;
 		this.port = client.getPort();
 		openListen();
+	}
+
+	public void stop(){
+		if(t!=null && t.isInterrupted()){
+			t.interrupt();
+		}
+		try {
+			server.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * 打开注册端口
@@ -73,7 +85,7 @@ public class ClientListener {
 	 * 监听
 	 */
 	public void start() {
-		new Thread(new Runnable() {
+		t = new Thread(new Runnable() {
 			public void run() {
 				while (true) {
 					try {
@@ -101,7 +113,8 @@ public class ClientListener {
 					}
 				}
 			}
-		}).start();
+		});
+		t.start();
 	}
 	
 }

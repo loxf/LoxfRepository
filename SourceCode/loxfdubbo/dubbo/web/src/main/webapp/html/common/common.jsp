@@ -1,6 +1,6 @@
-<%@ page language="java" pageEncoding="GBK"%>
+<%@ page language="java" pageEncoding="UTF-8" contentType="text/html"%>
 <%
-    String sysTitle = "DUBBO服务管理";
+    String sysTitle = "DUBBO鏈嶅姟绠＄悊";
 	String contextPath = (String)request.getContextPath();
 	request.setAttribute("contextPath",contextPath);
 %>

@@ -5,8 +5,6 @@
  */
 package org.loxf.registry.bean;
 
-import org.springframework.util.StringUtils;
-
 /**
  * @author lenovo
  *
@@ -35,7 +33,7 @@ public class AliveClient extends BaseBean {
 	 * SERV-127.0.0.1:2000[SERV1]
 	 */
 	public String toString() {
-		return new StringBuffer().append(type+"-").append(ip).append(StringUtils.isEmpty(this.port) ? "" : ":" + this.port).append("[")
+		return new StringBuffer().append(type+"-").append(ip).append(this.port<=0 ? "" : ":" + this.port).append("[")
 				.append(appName).append("]").toString();
 	}
 

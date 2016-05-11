@@ -5,7 +5,9 @@
  */
 package org.loxf.registry.main;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
 
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.invocation.Invocation;
@@ -76,4 +78,16 @@ public interface IProviderManager {
      * @author:luohj
      */
     public void reUploadService();
+    /**
+     * 初始化
+     * @param path 配置文件路径
+     * @author:luohj
+     */
+    public void init(String path) throws IOException;
+    /**
+     * 初始化
+     * @param path 配置文件
+     * @author:luohj
+     */
+    public void init(Properties properties);
 }
