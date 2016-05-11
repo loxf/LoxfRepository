@@ -33,6 +33,8 @@ public class ClientHeartBeatThread {
 	 */
 	private AliveClient client ;
 	
+	private Thread t;
+	
 	/**
 	 * @param sleepTime
 	 * @param registryCenter
@@ -43,9 +45,15 @@ public class ClientHeartBeatThread {
 		this.registryCenter = registryCenter;
 		this.client = client;
 	}
+
+	public void stop(){
+		if(t!=null && t.isInterrupted()){
+			t.interrupt();
+		}
+	}
 	
 	public void start(){
-		new Thread(new Runnable(){
+		t = new Thread(new Runnable(){
 			public void run(){
 				while(true){
 					try {
@@ -88,7 +96,8 @@ public class ClientHeartBeatThread {
 					}
 				}
 			}
-		}).start();
+		});
+		t.start();
 	}
 	
 	/**

@@ -12,10 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.annotation.Provider;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.Service;
-import org.springframework.util.StringUtils;
 
 /**
  * @author luohj

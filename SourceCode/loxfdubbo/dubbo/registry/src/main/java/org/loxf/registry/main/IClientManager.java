@@ -5,6 +5,9 @@
  */
 package org.loxf.registry.main;
 
+import java.io.IOException;
+import java.util.Properties;
+
 import org.loxf.registry.queue.IssuedQueue;
 
 /**
@@ -15,7 +18,12 @@ public interface IClientManager {
 	 * 初始化
 	 * @author:luohj
 	 */
-	void init();
+	void init(String configPath) throws IOException;
+	/**
+	 * 初始化
+	 * @author:luohj
+	 */
+	void init(Properties properties);
 	/**
 	 * 引用服务（单个服务）
 	 * @param interfaces
@@ -35,6 +43,11 @@ public interface IClientManager {
 	 * @author:luohj
 	 */
 	void start();
+	/**
+	 * 停止客户端
+	 * @author:luohj
+	 */
+	void stop();
 	/**
 	 * 客户端是否准备好
 	 * @return

@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.RegistryContainers;
@@ -251,5 +252,13 @@ public class RegistryCenterManager implements IRegistryCenterManager {
 	 */
 	public Map<String, Service> getServices() {
 		return this.center.getServices();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.loxf.registry.main.IRegistryCenterManager#getServiceByServer(org.loxf.registry.bean.Server)
+	 */
+	@Override
+	public Set<Service> getServiceByServer(Server server) {
+		return this.center.getServiceByServer(server);
 	}
 }

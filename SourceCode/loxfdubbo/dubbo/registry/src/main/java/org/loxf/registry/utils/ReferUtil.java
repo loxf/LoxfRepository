@@ -7,11 +7,11 @@ package org.loxf.registry.utils;
 
 import java.lang.reflect.Field;
 
+import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.annotation.Customer;
-import org.loxf.registry.context.ApplicationContext;
+import org.loxf.registry.context.ReferServiceContext;
 import org.loxf.registry.main.ClientManager;
 import org.loxf.registry.main.IClientManager;
-import org.springframework.util.StringUtils;
 
 /**
  * @author luohj
@@ -19,11 +19,11 @@ import org.springframework.util.StringUtils;
  */
 public class ReferUtil {
 	public static void refer(Object o){
-		ApplicationContext ctx = ApplicationContext.getInstance();
+		ReferServiceContext ctx = ReferServiceContext.getInstance();
 		IClientManager mgr = ClientManager.getClientManager();
 		while(!mgr.isReady()){
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

@@ -17,11 +17,11 @@ function getInfo(){
 	}
 }
 /**
- * 获取服务信息
+ * 获取服务信息(全量)
  */
 var services ;
 function getServicesInfo() {
-	var url = contextPath + "/console?method=service";
+	var url = contextPath + "/console/getService.do";
 	$.ajax({
 		type : "post",
 		url : url,
@@ -40,7 +40,7 @@ function getServicesInfo() {
 					html += "<td><a href='javascript:void(0)' onclick=\"viewProduct(event, " + i + ")\">查看</a></td>";
 					html += "<td><a href='javascript:void(0)' onclick=\"viewCustomer(event, " + i + ")\">查看</a></td>";
 					html += "<td>" + (row.timeout==0?"未设置":row.timeout) + "</td>";
-					html += "<td>" + (row.pollingType==null||row.pollingType==""?"默认：RANDOM":row.pollingType) + "</td>";
+					html += "<td>" + (row.pollingType==null||row.pollingType==""?"RANDOM":row.pollingType) + "</td>";
 					html += "<td>" + row.asyn + "</td>";
 					html += "</tr>";
 				}
@@ -49,7 +49,42 @@ function getServicesInfo() {
 			$("#serviceInfo").html(html);
 		},
 		error : function(XMLHttpRequest, textStatus, errorThrown) {
-			alert(XMLHttpRequest);
+			alert(textStatus);
+		}
+	});
+}
+
+/**
+ * 根据服务器获取服务信息
+ */
+function getServicesByServer(e, server) {
+	var url = contextPath + "/console/getServiceByServer.do";
+	showPanelPos(e.clientX, e.clientY);
+	$.ajax({
+		type : "post",
+		url : url,
+		data : {"server": server},
+		dataType : "json",
+		success : function(data) {
+			var html = "<tr><th>服务接口</th><th>服务分组</th><th>服务实现</th><th>状态</th><th>超时时间</th><th>负载类型</th><th>异步调用</th></tr>";
+			if(data!=null&&data.length>0){
+				for(var i=0; i<data.length; i++){
+					var row = data[i];
+					html += "<tr>";
+					html += "<td>" + row.interfaces + "</td>";
+					html += "<td>" + (row.serviceName==null||row.serviceName==""?"无":row.serviceName) + "</td>";
+					html += "<td>" + row.implClazz + "</td>";
+					html += "<td>" + row.status + "</td>";
+					html += "<td>" + (row.timeout==0?"未设置":row.timeout) + "</td>";
+					html += "<td>" + (row.pollingType==null||row.pollingType==""?"RANDOM":row.pollingType) + "</td>";
+					html += "<td>" + row.asyn + "</td>";
+					html += "</tr>";
+				}
+			}
+			$("#panelContent").html(html);
+		},
+		error : function(XMLHttpRequest, textStatus, errorThrown) {
+			$("#panelContent").html(textStatus);
 		}
 	});
 }
@@ -132,20 +167,25 @@ function showPanelPos(x, y){
 }
 
 function hidePanel(event){
-	$(".poptip").hide();
+	var src = event.target;
+	var divSrc = $(src).parents(".poptip");
+    if(divSrc!=null&&divSrc.length>0){
+        return false;
+    }else{
+    	$(".poptip").hide();
+    }
 }
 /**
  * 获取服务器信息
  */
-var servers ;
 function getServersInfo() {
-	var url = contextPath + "/console?method=server";
+	var url = contextPath + "/console/getServer.do";
 	$.ajax({
 		type : "post",
+		contentType:"application/x-www-form-urlencoded;charset=UTF-8",
 		url : url,
 		dataType : "json",
 		success : function(data) {
-
 			var html = "";
 			if(data!=null&&data.length>0){
 				for(var i=0; i<data.length; i++){
@@ -154,15 +194,35 @@ function getServersInfo() {
 					html += "<td>" + (row.type=="SERV"?"生产者":"消费者") + "</td>";
 					html += "<td>" + row.ip + ":" + row.port + "</td>";
 					html += "<td>" + row.appName + "</td>";
+					if(row.type=="SERV"){
+						html += "<td><a href='javascript:void(0)' onclick=\"getServicesByServer(event, '" 
+							+ (row.ip + ":" + row.port) + "')\">服务列表</a></td>";
+					} else {
+						html += "<td><td>";
+					}
 					html += "<td>" + (row.timeout==0?"未设置":row.timeout) + "</td>";
 					html += "</tr>";
 				}
-				servers = data;
 			}
 			$("#serverInfo").html(html);
 		},
 		error : function(XMLHttpRequest, textStatus, errorThrown) {
-			alert(XMLHttpRequest);
+			alert(textStatus);
+		}
+	});
+}
+
+function test(method){
+	var url = contextPath + "/app/" + method + ".do";
+	$.ajax({
+		type : "post",
+		url : url,
+		dataType : "text",
+		success : function(data) {
+			alert(data);
+		},
+		error : function(XMLHttpRequest, textStatus, errorThrown) {
+			alert(textStatus);
 		}
 	});
 }

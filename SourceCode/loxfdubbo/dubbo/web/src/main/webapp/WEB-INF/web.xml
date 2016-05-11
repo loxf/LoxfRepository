@@ -4,27 +4,46 @@
 
 	<display-name>dubbo</display-name>
 	<!-- 启动注册中心监听 -->
+	<context-param>
+	    <param-name>registryConfig</param-name>
+	    <param-value>/WEB-INF/registry.xml</param-value>
+	</context-param>
 	<listener>
 		<listener-class>org.loxf.dubbo.registry.RegistryListen</listener-class>
 	</listener>
-
+	
+	<!-- 启动消费者监听 本工程中用于管理界面示例部分的演示  -->
+	<!-- 不需要示例的时候，可以注释 -->
+	<context-param>
+	    <param-name>customerConfig</param-name>
+	    <param-value>/WEB-INF/customer.properties</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.loxf.dubbo.registry.CustomerListen</listener-class>
+	</listener>
+	
+	<!-- servlet dispatch -->
 	<servlet>
-		<servlet-name>console</servlet-name>
-		<servlet-class>org.loxf.dubbo.action.ConsoleAction</servlet-class>
+		<servlet-name>dispatcher</servlet-name>
+		<servlet-class>org.loxf.dubbo.action.DispatchServlet</servlet-class>
+		<load-on-startup>0</load-on-startup> 
+		<init-param>
+			<param-name>basePath</param-name>
+			<param-value>org.loxf.dubbo.action</param-value>
+		</init-param>
+		<init-param>
+			<param-name>excludePath</param-name>
+			<!-- value用小逗号隔开 -->
+			<param-value>
+				/console
+			</param-value>
+		</init-param>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>console</servlet-name>
-		<url-pattern>/console</url-pattern>
+		<servlet-name>dispatcher</servlet-name>
+		<url-pattern>*.do</url-pattern>
 	</servlet-mapping>
 
-	<servlet>
-		<servlet-name>hello</servlet-name>
-		<servlet-class>org.loxf.dubbo.action.HelloAction</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>hello</servlet-name>
-		<url-pattern>/hello</url-pattern>
-	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>/html/console/console.jsp</welcome-file>
 	</welcome-file-list>

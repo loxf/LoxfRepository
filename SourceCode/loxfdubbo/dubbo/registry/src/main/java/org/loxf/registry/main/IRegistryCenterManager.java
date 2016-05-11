@@ -1,6 +1,7 @@
 package org.loxf.registry.main;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Server;
@@ -95,4 +96,11 @@ public interface IRegistryCenterManager {
 	 * @author:luohj
 	 */
 	public Map<String, Service> getServices();
+	/**
+	 * 根据server获取服务
+	 * @param server
+	 * @return
+	 * @author:luohj
+	 */
+	public Set<Service> getServiceByServer(Server server);
 }

@@ -9,6 +9,6 @@ package org.loxf.api.demo;
  * @author luohj
  *
  */
-public interface IHello {
+public interface IHello extends I {
 	String sayHi();
 }
