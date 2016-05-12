@@ -3,7 +3,9 @@
  * luohj - 下午5:27:29
  * 
  */
-package org.loxf.registry.utils;
+package org.loxf.registry.action;
+
+import org.loxf.registry.utils.ReferUtil;
 
 /**
  * @author luohj

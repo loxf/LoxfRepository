@@ -6,6 +6,7 @@
 package org.loxf.service.impl;
 
 import org.loxf.api.demo.IHello;
+import org.loxf.core.service.BaseImpl;
 import org.loxf.registry.annotation.Method;
 import org.loxf.registry.annotation.Provider;
 
@@ -14,7 +15,7 @@ import org.loxf.registry.annotation.Provider;
  *
  */
 @Provider(interfaces = IHello.class)
-public class HelloWorldImpl implements IHello {
+public class HelloWorldImpl extends BaseImpl implements IHello {
 	/** (non-Javadoc)
 	 * @see org.loxf.service.interfaces.IHello#sayHi()
 	 */

@@ -1,4 +1,4 @@
-package org.loxf.registry.utils;
+package org.loxf.core.utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

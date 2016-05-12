@@ -12,8 +12,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.loxf.core.utils.MapCastList;
 import org.loxf.registry.queue.IssuedQueue;
-import org.loxf.registry.utils.MapCastList;
 
 /**
  * @author luohj

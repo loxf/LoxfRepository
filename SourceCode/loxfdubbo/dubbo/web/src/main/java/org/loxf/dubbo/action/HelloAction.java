@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.loxf.api.demo.IHello;
 import org.loxf.api.demo.IWho;
-import org.loxf.registry.annotation.Controller;
+import org.loxf.core.servlet.anno.Controller;
+import org.loxf.core.servlet.anno.RequestMapping;
 import org.loxf.registry.annotation.Customer;
-import org.loxf.registry.annotation.RequestMapping;
 
 /**
  * @author luohj

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.loxf.core.utils.ScanPackage;
 import org.loxf.registry.annotation.Provider;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.Service;
@@ -22,7 +23,8 @@ import org.loxf.registry.bean.Service;
  *
  */
 public class ExportUtil {
-	public static Service parse(Class<?> clazz) throws InstantiationException, IllegalAccessException,
+	@SuppressWarnings("unchecked")
+	public static <T>T parse(Class<?> clazz) throws InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Annotation[] classAnos = clazz.getAnnotations();
 		boolean flag = false;
@@ -73,7 +75,7 @@ public class ExportUtil {
 							}
 							service.setMethod(methods);
 						}
-						return service;
+						return (T)service;
 					} else {
 						// throw new RuntimeException("服务[" + clazz.getName() +
 						// "]暴露失败，当前实现类未注解为服务提供者。");

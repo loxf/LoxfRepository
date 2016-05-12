@@ -20,21 +20,21 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
+import org.loxf.core.context.ApplicationContext;
+import org.loxf.core.utils.CommonUtil;
+import org.loxf.core.utils.ComputerInfoUtil;
+import org.loxf.core.utils.MapCastList;
+import org.loxf.core.utils.PropertiesUtil;
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.constracts.PollingType;
-import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ClientListener;
 import org.loxf.registry.thread.ClientHeartBeatThread;
-import org.loxf.registry.utils.CommonUtil;
-import org.loxf.registry.utils.ComputerInfoUtil;
 import org.loxf.registry.utils.LoadBalanceUtil;
-import org.loxf.registry.utils.MapCastList;
-import org.loxf.registry.utils.PropertiesUtil;
 
 /**
  * 消费端管理中心 
@@ -296,6 +296,7 @@ public class ClientManager implements IClientManager {
 	@Override
 	public void start() {
 		System.out.println("ClientManager starting...");
+		Date start = new Date();
 		// 第一次启动，主动向服务端获取一次全量服务列表
 		getAllServicesFirstConnect();
 		// 再启动客户端获取服务的监听
@@ -314,6 +315,10 @@ public class ClientManager implements IClientManager {
 			ex.printStackTrace();
 		}
 		while(!mgr.isReady()){
+			Date end = new Date();
+			if(end.getTime() - start.getTime()>30000l){
+				throw new RuntimeException("启动消费端监听超时：30S... 请检查注册中心是否正常。");
+			}
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {

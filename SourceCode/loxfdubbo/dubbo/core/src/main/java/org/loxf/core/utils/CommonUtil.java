@@ -3,7 +3,7 @@
  * luohj - 下午4:48:07
  * 
  */
-package org.loxf.registry.utils;
+package org.loxf.core.utils;
 
 import org.apache.commons.lang.StringUtils;
 

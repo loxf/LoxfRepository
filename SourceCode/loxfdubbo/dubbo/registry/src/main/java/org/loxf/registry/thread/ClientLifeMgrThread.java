@@ -9,10 +9,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.loxf.core.utils.MapUtils;
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.main.IRegistryCenterManager;
-import org.loxf.registry.utils.MapUtils;
 
 /**
  * @author luohj

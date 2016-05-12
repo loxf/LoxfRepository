@@ -14,14 +14,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
-import org.loxf.registry.annotation.Controller;
-import org.loxf.registry.annotation.RequestMapping;
+import org.loxf.core.servlet.anno.Controller;
+import org.loxf.core.servlet.anno.RequestMapping;
+import org.loxf.core.utils.MapCastList;
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.main.IRegistryCenterManager;
 import org.loxf.registry.main.RegistryCenterManager;
-import org.loxf.registry.utils.MapCastList;
 
 /**
  * @author luohj

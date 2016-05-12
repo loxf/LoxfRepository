@@ -3,7 +3,7 @@
  * luohj - 下午1:33:48
  * 
  */
-package org.loxf.dubbo.action;
+package org.loxf.core.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.loxf.common.servlet.Forward;
 import org.loxf.common.servlet.Redirect;
-import org.loxf.registry.bean.ServletBean;
-import org.loxf.registry.context.ApplicationContext;
-import org.loxf.registry.utils.CommonUtil;
+import org.loxf.core.context.ApplicationContext;
+import org.loxf.core.servlet.bean.ServletBean;
+import org.loxf.core.utils.CommonUtil;
 
 import net.sf.json.JSONArray;
 

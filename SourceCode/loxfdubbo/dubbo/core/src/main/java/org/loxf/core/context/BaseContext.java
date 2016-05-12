@@ -3,7 +3,7 @@
  * luohj - 上午10:41:19
  * 
  */
-package org.loxf.registry.context;
+package org.loxf.core.context;
 
 import java.util.HashMap;
 import java.util.Map;

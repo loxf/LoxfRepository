@@ -8,8 +8,8 @@ package org.loxf.registry.utils;
 import java.lang.reflect.Field;
 
 import org.apache.commons.lang.StringUtils;
+import org.loxf.core.context.ApplicationContext;
 import org.loxf.registry.annotation.Customer;
-import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.main.ClientManager;
 import org.loxf.registry.main.IClientManager;
 
@@ -21,13 +21,6 @@ public class ReferUtil {
 	public static void refer(Object o){
 		ApplicationContext ctx = ApplicationContext.getInstance();
 		IClientManager mgr = ClientManager.getClientManager();
-		while(!mgr.isReady()){
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 		// 解析
 		// List<Map<String, ?>> list = ReferUtil.parse(o.getClass());
 		try {

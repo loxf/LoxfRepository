@@ -9,8 +9,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.loxf.api.demo.IHello;
 import org.loxf.api.demo.IWho;
+import org.loxf.registry.action.BaseRefer;
 import org.loxf.registry.annotation.Customer;
-import org.loxf.registry.utils.BaseRefer;
 
 /**
  * @author luohj
