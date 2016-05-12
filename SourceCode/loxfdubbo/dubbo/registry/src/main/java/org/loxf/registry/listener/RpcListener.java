@@ -89,17 +89,8 @@ public class RpcListener {
 									case 1:
 										// 1：注册服务
 										try {
-											String regType = (String)input.readObject();//注册类型：LIST：列表注册，SINGLE：单个注册
-											if("LIST".equalsIgnoreCase(regType)){
-												Service[] services = (Service[])input.readObject();//获取注册服务
-												serverManager.register(services);
-												
-											} else if("SINGLE".equalsIgnoreCase(regType)){
-												Service service = (Service)input.readObject();//获取注册服务
-												serverManager.register(service);
-											} else {
-												output.writeObject(new RuntimeException("注册类型参数错误，只能为LIST|SINGLE"));
-											}
+											Service[] services = (Service[])input.readObject();//获取注册服务
+											serverManager.register(services);
 											output.writeObject(true);
 										} catch (Throwable t) {
 											output.writeObject(t);

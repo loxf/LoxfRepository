@@ -19,7 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.loxf.common.servlet.Forward;
 import org.loxf.common.servlet.Redirect;
 import org.loxf.registry.bean.ServletBean;
-import org.loxf.registry.context.ServletContext;
+import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.utils.CommonUtil;
 
 import net.sf.json.JSONArray;
@@ -31,7 +31,7 @@ import net.sf.json.JSONArray;
  *
  */
 public class DispatchServlet extends HttpServlet {
-	ServletContext ctx = ServletContext.getInstance();
+	ApplicationContext ctx = ApplicationContext.getInstance();
 	private String[] excludePaths ;
 	/**
 	 * 
@@ -40,7 +40,7 @@ public class DispatchServlet extends HttpServlet {
 	
 	public void init() throws ServletException {  
 		String basepath = CommonUtil.valueofString(this.getInitParameter("basePath"), "org.loxf");
-		ctx.load(basepath);
+		ctx.loadServlet(basepath);
 		String excludePathStr = this.getInitParameter("excludePath");
 		if(!StringUtils.isBlank(excludePathStr)){
 			excludePathStr = excludePathStr.replaceAll("[\\t\\n\\r]", "").replaceAll(" ", "");
@@ -53,7 +53,7 @@ public class DispatchServlet extends HttpServlet {
 		if(CommonUtil.contains(excludePaths, path)){
 			return ;
 		}
-		ServletBean servletBean = (ServletBean)ctx.getBean(path);
+		ServletBean servletBean = (ServletBean)ctx.getServlet(path);
 		req.setCharacterEncoding("UTF-8");
 		resp.setCharacterEncoding("UTF-8");
 		resp.setContentType("text/html"); 

@@ -26,9 +26,9 @@ import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.constracts.PollingType;
+import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ClientListener;
-import org.loxf.registry.queue.IssuedQueue;
 import org.loxf.registry.thread.ClientHeartBeatThread;
 import org.loxf.registry.utils.CommonUtil;
 import org.loxf.registry.utils.ComputerInfoUtil;
@@ -137,9 +137,9 @@ public class ClientManager implements IClientManager {
 	 *      java.lang.String)
 	 */
 	@Override
-	public <T> T refer(Class<T> interfaces, String group, boolean asyn) {
+	public <T> T refer(Class<T> interfaces, String group, boolean asyn, boolean jvm) {
 		try {
-			return refer(interfaces, group, client, asyn);
+			return refer(interfaces, group, client, asyn, jvm);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -165,7 +165,7 @@ public class ClientManager implements IClientManager {
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	<T> T refer(final Class<T> interfaceClass, final String group, final AliveClient client, final boolean asyn)
+	<T> T refer(final Class<T> interfaceClass, final String group, final AliveClient client, final boolean asyn, final boolean jvm)
 			throws Exception {
 		if (interfaceClass == null)
 			throw new IllegalArgumentException("Interface class == null");
@@ -180,9 +180,19 @@ public class ClientManager implements IClientManager {
 						if(service==null){
 							throw new RuntimeException("未找到当前service的定义！"+ key);
 						}
+						if(jvm){
+							if(ApplicationContext.getInstance().isExistsBean(key+":jvm")){
+								Object result = method.invoke(Class.forName(service.getImplClazz()).newInstance(), arguments);
+								if (result instanceof Throwable) {
+									throw (Throwable) result;
+								}
+								return result;
+							}
+						} 
 						// 负载均衡算法，方法级>服务级>客户端总定义
 						String polling = StringUtils.isEmpty(service.getPollingType()) ? pollingType : service.getPollingType();
 						HashMap<String,Method> ms = service.getMethod();
+						int timeout = 0;
 						if(ms!=null){
 							String[] param = new String[method.getParameterTypes().length];
 							int i = 0;
@@ -193,6 +203,7 @@ public class ClientManager implements IClientManager {
 									.toString());
 							if(mth!=null&&!StringUtils.isEmpty(mth.getPollingType())){
 								polling = mth.getPollingType();
+								timeout = mth.getTimeout();
 							}
 						}
 						// 获取所有服务端
@@ -224,10 +235,17 @@ public class ClientManager implements IClientManager {
 									invo.setAppName(client.getAppName());
 									invo.setAsyn(asyn);
 									invo.setIp(client.getIp());
+									invo.setPort(client.getPort());
+									if(timeout<=0){
+										timeout = service.getTimeout()>0 ?  service.getTimeout(): client.getTimeout();
+									}
+									invo.setTimeout(timeout);
+									
 									output.writeObject(invo);
 									ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
 									try {
 										Object result = input.readObject();
+										// TODO 处理异步的情况 else if instanceof Feature
 										if (result instanceof Throwable) {
 											throw (Throwable) result;
 										}
@@ -260,8 +278,8 @@ public class ClientManager implements IClientManager {
 	 * @see org.loxf.registry.main.IClientManager#updateServices()
 	 */
 	@Override
-	public void updateServices(IssuedQueue queue) {
-		updateServiceThread(queue);
+	public void updateServices(Service[] servs) {
+		updateServiceThread(servs);
 	}
 	
 	@Override
@@ -365,23 +383,22 @@ public class ClientManager implements IClientManager {
 	 * @param services
 	 * @author:luohj
 	 */
-	public void updateServiceThread(IssuedQueue queue) {
+	public void updateServiceThread(final Service[] servs) {
 		new Thread(new Runnable() {
 			public void run() {
-				while (!queue.isEmpty()) {
-					Service service = queue.poll();
-					if (service != null && service.isUpdate()) {
-						synchronized (services) {
-							service.setLastModifyDate(new Date());
-							services.put(service.toString(), service);
-							System.out.println("客户端服务["+service.toString() + "]更新成功!");
+				if(servs!=null && servs.length>0){
+					synchronized (services) {
+						for (Service service : servs) {
+							if (service != null && service.isUpdate()) {
+								service.setLastModifyDate(new Date());
+								services.put(service.toString(), service);
+								System.out.println("客户端服务["+service.toString() + "]更新成功!");
+							}
 						}
 					}
 				}
-				queue.clear();
 			}
 		}).start();
-		;
 	}
 
 	/**

@@ -21,4 +21,5 @@ public @interface Customer {
 	public boolean asyn() default false;
 	public String pollingType() default "";
 	public int timeout() default 0;
+	public boolean jvm() default false;
 }

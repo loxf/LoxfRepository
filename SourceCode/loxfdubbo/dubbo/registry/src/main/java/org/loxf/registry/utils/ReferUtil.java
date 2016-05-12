@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
 
 import org.apache.commons.lang.StringUtils;
 import org.loxf.registry.annotation.Customer;
-import org.loxf.registry.context.ReferServiceContext;
+import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.main.ClientManager;
 import org.loxf.registry.main.IClientManager;
 
@@ -19,7 +19,7 @@ import org.loxf.registry.main.IClientManager;
  */
 public class ReferUtil {
 	public static void refer(Object o){
-		ReferServiceContext ctx = ReferServiceContext.getInstance();
+		ApplicationContext ctx = ApplicationContext.getInstance();
 		IClientManager mgr = ClientManager.getClientManager();
 		while(!mgr.isReady()){
 			try {
@@ -38,11 +38,10 @@ public class ReferUtil {
 					Customer refer = f.getAnnotation(Customer.class);
 					String group = refer.group();
 					Class<?> interfaces = f.getType();
-					boolean asyn = refer.asyn();
 					String key = interfaces.toString()
 							+ (StringUtils.isEmpty(group) ? "" : ":" + group);
 					if (!ctx.isExistsBean(key))
-						ctx.setBean(key, mgr.refer((Class<?>) interfaces, group, asyn));
+						ctx.setBean(key, mgr.refer((Class<?>) interfaces, group, refer.asyn(), refer.jvm()));
 					
 					// 允许访问private字段
 					f.setAccessible(true);

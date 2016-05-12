@@ -15,7 +15,7 @@ public class AliveClient extends BaseBean {
 	private String ip;
 	private int port;
 	private String appName;
-	private long timeout;
+	private int timeout;
 	
 	public AliveClient(){
 		super(true);
@@ -99,14 +99,14 @@ public class AliveClient extends BaseBean {
 	/**
 	 * @return the timeout
 	 */
-	public long getTimeout() {
+	public int getTimeout() {
 		return timeout;
 	}
 
 	/**
 	 * @param timeout the timeout to set
 	 */
-	public void setTimeout(long timeout) {
+	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 	}
 

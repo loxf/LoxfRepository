@@ -240,5 +240,4 @@ public class Service extends BaseBean {
 	public Server getServer(String key) {
 		return (servers == null ? null : servers.get(key));
 	}
-
 }

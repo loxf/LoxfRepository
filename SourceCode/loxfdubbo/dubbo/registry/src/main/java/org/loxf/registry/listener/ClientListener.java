@@ -13,8 +13,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import org.loxf.registry.bean.AliveClient;
+import org.loxf.registry.bean.Service;
 import org.loxf.registry.main.ClientManager;
-import org.loxf.registry.queue.IssuedQueue;
 
 /**
  * 客户端监听
@@ -95,9 +95,9 @@ public class ClientListener {
 							try {
 								ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
 								try {
-									 IssuedQueue queue = (IssuedQueue)input.readObject();
+									Service[] servs = (Service[])input.readObject();
 									 //获取服务列表并更新
-									 clientMgr.updateServices(queue);
+									 clientMgr.updateServices(servs);
 									 output.writeObject(true);
 								} finally {
 									output.close();

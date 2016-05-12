@@ -125,13 +125,16 @@ public class RegistryContainers extends BaseBean {
 						HashMap<String, Server> servers = srv.getServers();
 						if (servers != null) {
 							if (tmp.isUpdate() && tmp.isChanged()) {
-								tmp.setLastModifyDate(now);
-								servers.put(tmp.toString(), tmp);
-								isPush = true;
+								if(!servers.containsKey(tmp.toString())){
+									tmp.setLastModifyDate(now);
+									servers.put(tmp.toString(), tmp);
+									isPush = true;
+								}
 							}
 						} else {
 							if (service.getServers() != null) {
 								srv.setServers(service.getServers());
+								isPush = true;
 							}
 						}
 						// 最后注册服务本身
@@ -230,15 +233,11 @@ public class RegistryContainers extends BaseBean {
 			synchronized (RegistryContainers.class) {
 				if (issuedQueue == null) {
 					issuedQueue = new IssuedQueue();
-					issuedQueue.add(service);
-				} else {
-					issuedQueue.add(service);
 				}
 			}
-		} else {
-			synchronized (this.issuedQueue) {
-				this.issuedQueue.add(service);
-			}
+		}
+		synchronized (this.issuedQueue) {
+			this.issuedQueue.add(service);
 		}
 	}
 

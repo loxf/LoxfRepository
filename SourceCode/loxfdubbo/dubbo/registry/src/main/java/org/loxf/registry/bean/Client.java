@@ -1,7 +1,5 @@
 package org.loxf.registry.bean;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * 客户端
  * @author luohj
@@ -20,7 +18,7 @@ public class Client extends BaseBean {
 	/**
 	 * 客户端接受服务端推送的端口
 	 */
-	private String clientPort;
+	private int clientPort;
 	/**
 	 * 客户端名称
 	 */
@@ -43,24 +41,27 @@ public class Client extends BaseBean {
 	 */
 	private int timeout;
 	
-	public Client(String clientAddr){
+	public Client(String clientAddr, int port){
 		this.clientAddr = clientAddr;
+		this.clientPort = port;
 		this.asyn = false;
 		this.timeout = 600000;
 	}
 	
-	public Client(String clientAddr, String appName){
+	public Client(String clientAddr, int port, String appName){
 		this.clientAddr = clientAddr;
+		this.clientPort = port;
 		this.clientName = appName;
 		this.asyn = false;
-		this.timeout = 600000;
+		this.timeout = 60000;
 	}
 	
-	public Client(String clientAddr, String appName, boolean asyn){
+	public Client(String clientAddr, int port, String appName, boolean asyn, int timeout){
 		this.clientAddr = clientAddr;
+		this.clientPort = port;
 		this.clientName = appName;
 		this.asyn = asyn;
-		this.timeout = 600000;
+		this.timeout = timeout;
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class Client extends BaseBean {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString(){
-		return (this.clientAddr + (StringUtils.isEmpty(this.clientPort) ? "" : (":" + this.clientPort)) 
+		return (this.clientAddr + (this.clientPort<=0 ? "" : (":" + this.clientPort)) 
 				+ "[" + this.clientName + "]");
 	}
 	
@@ -97,14 +98,14 @@ public class Client extends BaseBean {
 	/**
 	 * @return the clientPort
 	 */
-	public String getClientPort() {
+	public int getClientPort() {
 		return clientPort;
 	}
 
 	/**
 	 * @param clientPort the clientPort to set
 	 */
-	public void setClientPort(String clientPort) {
+	public void setClientPort(int clientPort) {
 		this.clientPort = clientPort;
 	}
 
