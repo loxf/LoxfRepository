@@ -8,7 +8,7 @@ package org.loxf.registry.main;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.loxf.registry.queue.IssuedQueue;
+import org.loxf.registry.bean.Service;
 
 /**
  * @author luohj
@@ -32,12 +32,12 @@ public interface IClientManager {
 	 * @return
 	 * @author: luohj
 	 */
-	<T> T refer(final Class<T> interfaces, final String group, final boolean asyn);
+	<T> T refer(final Class<T> interfaces, final String group, final boolean asyn, final boolean jvm);
 	/**
 	 * 更新services
 	 * @author:luohj
 	 */
-	void updateServices(IssuedQueue queue);
+	void updateServices(Service[] servs);
 	/**
 	 * 启动客户端获取服务列表监听端口
 	 * @author:luohj

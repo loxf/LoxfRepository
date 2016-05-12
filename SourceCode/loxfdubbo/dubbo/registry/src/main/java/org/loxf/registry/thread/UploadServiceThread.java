@@ -65,7 +65,6 @@ public class UploadServiceThread {
 									 * out {(boolean)Object }<br>
 									 */
 									out.writeInt(1);
-									out.writeObject("LIST");
 									out.writeObject(services);
 									ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 									try {

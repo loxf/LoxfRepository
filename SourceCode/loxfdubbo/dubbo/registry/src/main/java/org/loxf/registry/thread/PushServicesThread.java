@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.loxf.registry.bean.AliveClient;
+import org.loxf.registry.bean.Service;
 import org.loxf.registry.queue.IssuedQueue;
 import org.loxf.registry.utils.MapCastList;
 
@@ -46,6 +47,8 @@ public class PushServicesThread {
 						synchronized(queue){
 							@SuppressWarnings("unchecked")
 							List<AliveClient> listClient = (List<AliveClient>) MapCastList.convert(aliveClients);
+							Service[] servs = new Service[queue.size()];
+							queue.toArray(servs);
 							for(AliveClient client : listClient){
 								if("CUST".equalsIgnoreCase(client.getType())){
 									Socket socket = null;
@@ -53,14 +56,13 @@ public class PushServicesThread {
 										socket = new Socket(client.getIp(), Integer.valueOf(client.getPort()));
 										ObjectOutputStream out = new ObjectOutputStream (socket.getOutputStream());
 										// 推送queue到客户端
-										out.writeObject(queue);
+										out.writeObject(servs);
 										ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 										try {
 											Object result = in.readObject();
 											if(result instanceof Throwable){
 												throw (Throwable)result; 
 											}
-											System.out.println(result);
 										} catch (ClassNotFoundException e) {
 											e.printStackTrace();
 										} catch (Throwable e) {
@@ -69,7 +71,6 @@ public class PushServicesThread {
 											in.close();
 											out.close();
 										}
-										queue.clear();
 									} catch (NumberFormatException e) {
 										e.printStackTrace();
 									} catch (UnknownHostException e) {
@@ -86,6 +87,7 @@ public class PushServicesThread {
 									}
 								}
 							}
+							queue.clear();
 						}
 					}
 					try {

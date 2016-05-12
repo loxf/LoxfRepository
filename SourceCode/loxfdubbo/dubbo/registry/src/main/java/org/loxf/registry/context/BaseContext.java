@@ -1,6 +1,6 @@
 /**
- * ApplicationContext.java
- * luohj - 下午7:22:37
+ * BaseContext.java
+ * luohj - 上午10:41:19
  * 
  */
 package org.loxf.registry.context;
@@ -12,10 +12,17 @@ import java.util.Map;
  * @author luohj
  *
  */
-public class ReferServiceContext {
-	private static ReferServiceContext ctx ;
+public class BaseContext {
 	private Map<String,Object > map ;
-	ReferServiceContext(){
+	
+	/**
+	 * @return the map
+	 */
+	public Map<String, Object> getMap() {
+		return map;
+	}
+
+	BaseContext(){
 		map = new HashMap<String, Object> ();
 	}
 	
@@ -32,14 +39,4 @@ public class ReferServiceContext {
 		return map.containsKey(key);
 	}
 	
-	public static ReferServiceContext getInstance(){
-		if(ctx==null){
-			synchronized(ReferServiceContext.class){
-				if(ctx==null){
-					ctx = new ReferServiceContext();
-				}
-			}
-		}
-		return ctx;
-	}
 }

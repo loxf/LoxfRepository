@@ -17,6 +17,8 @@ public class Invocation extends BaseBean{
 	private Object result;
 	private String appName;
 	private String ip;
+	private int port;
+	private int timeout;
 	private boolean asyn;
 	
 	/**
@@ -90,10 +92,34 @@ public class Invocation extends BaseBean{
 		this.ip = ip;
 	}
 	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+	/**
+	 * @param port the port to set
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
+	/**
 	 * @return the asyn
 	 */
 	public boolean isAsyn() {
 		return asyn;
+	}
+	/**
+	 * @return the timeout
+	 */
+	public int getTimeout() {
+		return timeout;
+	}
+	/**
+	 * @param timeout the timeout to set
+	 */
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
 	}
 	/**
 	 * @param asyn the asyn to set

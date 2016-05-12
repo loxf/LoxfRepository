@@ -21,6 +21,7 @@ import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
+import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ProviderListener;
 import org.loxf.registry.queue.UploadServiceQueue;
@@ -120,6 +121,7 @@ public class ProviderManager implements IProviderManager {
 		client.setTimeout(CommonUtil.valueofInt(p.getProperty("server.timeout"), 60000));
 		
 		xmlPath = CommonUtil.valueofString(p.getProperty("server.package"), "org.loxf");
+		// 服务发布
 		this.export();
 		
 		isRuning = false;
@@ -155,7 +157,7 @@ public class ProviderManager implements IProviderManager {
 	 * @see org.loxf.registry.main.IProviderManager#call(org.loxf.registry.invocation.Invocation)
 	 */
 	@Override
-	public Object call(Invocation invo)
+	public Object call(final Invocation invo)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException {
 		// 异步执行服务调用的客户端信息
 		String key = invo.getInterfaces().getName()
@@ -169,22 +171,18 @@ public class ProviderManager implements IProviderManager {
 				boolean flag = false;//是否上载
 				synchronized (services) {
 					Date now = new Date();
-					HashMap<String, Client> clients = service.getClients();
-					Client c = new Client(invo.getIp(), invo.getAppName(), invo.isAsyn());
-					if (clients == null) {
-						clients = new HashMap<String, Client>();
-						service.setClients(clients);
+					Client c = new Client(invo.getIp(), invo.getPort(), invo.getAppName(), invo.isAsyn(), invo.getTimeout());
+					if (service.getClients() == null) {
+						service.setClients(new HashMap<String, Client>());
 					}
-					if (!clients.containsKey(c.toString())) {
+					if (!service.getClients().containsKey(c.toString())) {
 						// 更新客户端信息
 						c.update(true, true, now);
-						clients.put(c.toString(), c);
+						service.getClients().put(c.toString(), c);
 						flag = true;
 					}
-					HashMap<String, Method> methods = service.getMethod();
-					if(methods==null){
-						methods = new HashMap<String, Method> ();
-						service.setMethod(methods);
+					if(service.getMethod()==null){
+						service.setMethod(new HashMap<String, Method> ());
 					}
 					Class<?>[] paramTypes = invo.getMethod().getParameterTypes();
 					String[] params = new String[paramTypes.length];
@@ -194,11 +192,11 @@ public class ProviderManager implements IProviderManager {
 					}
 					String methodKey = new StringBuffer().append(invo.getMethod().getName()).append("(")
 							.append(StringUtils.join(params, " ,")).append(")").toString();
-					if (!methods.containsKey(methodKey)) {
+					if (!service.getMethod().containsKey(methodKey)) {
 						Method m = new Method(invo.getMethod().getName(), params);
 						m.update(true, true, now);
 						// 更新方法信息
-						methods.put(methodKey, m);
+						service.getMethod().put(methodKey, m);
 						flag = true;
 					}
 					if(flag){
@@ -218,9 +216,16 @@ public class ProviderManager implements IProviderManager {
 		java.lang.reflect.Method m = null;
 		Object result = null;
 		try {
-			m = Class.forName(service.getInterfaces()).getMethod(invo.getMethod().getName(),
-					invo.getMethod().getParameterTypes());
-			result = m.invoke(Class.forName(service.getImplClazz()).newInstance(), invo.getParams());
+			
+			if(invo.isAsyn()){
+				// TODO 异步调用 feature调用
+			} else {
+				// 同步调用 已实现
+				// TODO 超时打断 invo.getTimeout();
+				m = Class.forName(service.getInterfaces()).getMethod(invo.getMethod().getName(),
+						invo.getMethod().getParameterTypes());
+				result = m.invoke(Class.forName(service.getImplClazz()).newInstance(), invo.getParams());
+			}
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
 		} catch (SecurityException e) {
@@ -261,7 +266,11 @@ public class ProviderManager implements IProviderManager {
 	public void export() {
 		System.out.println("服务器：" + client.getIp() + ":" + client.getPort());
 		Service[] services = parseService(xmlPath);
+		//本地服务发布
+		ApplicationContext.getInstance().setLocalBeans(services);
+		//远程发布
 		export(services);
+		
 	}
 
 	/**
@@ -270,9 +279,8 @@ public class ProviderManager implements IProviderManager {
 	 * @see org.loxf.registry.main.IProviderManager#export(org.loxf.registry.bean.Service)
 	 */
 	@Override
-	public void export(Service service) {
-
-		if (service != null && service.isUpdate()) {
+	public void export(Service service) {		
+		if (service != null && service.isUpdate()) {			
 			Server server = new Server();
 			server.setServerAddr(client.getIp());
 			server.setServerPort(client.getPort());
