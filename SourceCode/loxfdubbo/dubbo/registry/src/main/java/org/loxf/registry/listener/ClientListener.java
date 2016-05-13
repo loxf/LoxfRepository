@@ -42,7 +42,7 @@ public class ClientListener {
 	}
 
 	public void stop(){
-		if(t!=null && t.isInterrupted()){
+		if(t!=null && !t.isInterrupted()){
 			t.interrupt();
 		}
 		try {

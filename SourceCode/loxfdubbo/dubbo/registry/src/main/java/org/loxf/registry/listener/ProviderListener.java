@@ -7,11 +7,10 @@ package org.loxf.registry.listener;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
 
 import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.main.ProviderManager;
@@ -80,31 +79,13 @@ public class ProviderListener {
 				while (true) {
 					try {
 						final Socket socket = server.accept();// 服务器端一旦收到消息，就创建一个线程进行处理
-						new Thread(new Runnable() {
-							public void run() {
-								try {
-									ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
-									ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
-									try {
-										Invocation invo = (Invocation) input.readObject();
-										// 获取服务列表并更新
-										Object result = providerMgr.call(invo);
-										output.writeObject(result);
-									} catch (ClassNotFoundException | IllegalAccessException
-											| IllegalArgumentException | InvocationTargetException
-											| NoSuchMethodException | InstantiationException e) {
-										e.printStackTrace();
-									} finally {
-										output.close();
-										input.close();
-										socket.close();
-									}
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}
-						}).start();
-					} catch (IOException e) {
+						Date start = new Date();
+						ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+						Invocation invo = (Invocation) input.readObject();
+						ExecThread exec = new ExecThread(providerMgr, socket, invo, input);
+						exec.start();
+						new DealTimeOutThread(exec, start, invo.getTimeout()).start();
+					} catch (IOException | ClassNotFoundException e) {
 						e.printStackTrace();
 					}
 				}
