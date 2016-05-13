@@ -3,7 +3,7 @@
  * luohj - 下午2:49:32
  * 
  */
-package org.loxf.registry.utils;
+package org.loxf.core.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

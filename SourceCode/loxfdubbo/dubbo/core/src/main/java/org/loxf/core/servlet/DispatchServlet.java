@@ -3,7 +3,7 @@
  * luohj - 下午1:33:48
  * 
  */
-package org.loxf.dubbo.action;
+package org.loxf.core.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.loxf.common.servlet.Forward;
 import org.loxf.common.servlet.Redirect;
-import org.loxf.registry.bean.ServletBean;
-import org.loxf.registry.context.ApplicationContext;
-import org.loxf.registry.utils.CommonUtil;
+import org.loxf.core.context.ApplicationContext;
+import org.loxf.core.servlet.bean.ServletBean;
+import org.loxf.core.utils.CommonUtil;
 
 import net.sf.json.JSONArray;
 
@@ -62,24 +62,24 @@ public class DispatchServlet extends HttpServlet {
             System.err.println("No handler found for " + path);  
             return; 
 		}
+		Object result = null;
 		try {
-			Object result = execute(servletBean, path, req, resp);
-			if(result!=null){
-				PrintWriter w = resp.getWriter();
-				if(result instanceof String || result instanceof Integer || result instanceof Boolean
-					 || result instanceof Character || result instanceof Short || result instanceof Byte
-					 || result instanceof Long || result instanceof Float || result instanceof Double){
-					w.print(result);
-				}
-				else {
-					w.write(JSONArray.fromObject(result).toString());
-				}
-				w.close();
-			}
-		} catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException
-				| InstantiationException e) {
+			result = execute(servletBean, path, req, resp);
+		} catch (Throwable e) {
 			e.printStackTrace();
-			throw new IOException(e.getMessage());
+			throw new IOException(e.getMessage(), e);
+		}
+		if(result!=null){
+			PrintWriter w = resp.getWriter();
+			if(result instanceof String || result instanceof Integer || result instanceof Boolean
+				 || result instanceof Character || result instanceof Short || result instanceof Byte
+				 || result instanceof Long || result instanceof Float || result instanceof Double){
+				w.print(result);
+			}
+			else {
+				w.write(JSONArray.fromObject(result).toString());
+			}
+			w.close();
 		}
 	}
 
@@ -88,16 +88,10 @@ public class DispatchServlet extends HttpServlet {
 	 * 
 	 * @param req
 	 * @param resp
-	 * @throws ServletException
-	 * @throws IOException
-	 * @throws InvocationTargetException 
-	 * @throws InstantiationException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
+	 * @throws Throwable 
 	 */
 	private Object execute(ServletBean servlet, String path, HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException, InvocationTargetException, IllegalAccessException,
-			IllegalArgumentException, InstantiationException {
+			throws Throwable {
 		try {
 			Method m = servlet.getMethod().get(path);
 			Object o = servlet.getServlet().newInstance();
@@ -109,7 +103,7 @@ public class DispatchServlet extends HttpServlet {
 			}
 			return result;
 		} catch (InvocationTargetException e) {
-			throw e;
+			throw e.getTargetException();
 		}
 	}
 

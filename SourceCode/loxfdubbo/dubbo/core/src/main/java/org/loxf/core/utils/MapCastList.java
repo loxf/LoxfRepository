@@ -3,7 +3,7 @@
  * luohj - 下午6:05:06
  * 
  */
-package org.loxf.registry.utils;
+package org.loxf.core.utils;
 
 import java.util.ArrayList;
 import java.util.Iterator;

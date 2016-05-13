@@ -3,7 +3,7 @@
  * luohj - 下午9:00:53
  * 
  */
-package org.loxf.api.demo;
+package org.loxf.core.interfaces;
 
 /**
  * @author luohj

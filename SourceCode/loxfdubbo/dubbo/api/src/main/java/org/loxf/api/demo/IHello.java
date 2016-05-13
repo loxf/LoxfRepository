@@ -5,10 +5,12 @@
  */
 package org.loxf.api.demo;
 
+import org.loxf.core.interfaces.IBaseService;
+
 /**
  * @author luohj
  *
  */
-public interface IHello extends I {
+public interface IHello extends IBaseService {
 	String sayHi();
 }

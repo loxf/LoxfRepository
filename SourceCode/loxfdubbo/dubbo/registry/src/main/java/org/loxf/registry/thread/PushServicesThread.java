@@ -13,10 +13,10 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
+import org.loxf.core.utils.MapCastList;
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.queue.IssuedQueue;
-import org.loxf.registry.utils.MapCastList;
 
 /**
  * 发布服务给客户端（每五秒钟）

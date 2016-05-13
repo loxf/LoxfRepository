@@ -3,7 +3,7 @@
  * luohj - 下午5:35:27
  * 
  */
-package org.loxf.registry.bean;
+package org.loxf.core.servlet.bean;
 
 import java.util.HashMap;
 

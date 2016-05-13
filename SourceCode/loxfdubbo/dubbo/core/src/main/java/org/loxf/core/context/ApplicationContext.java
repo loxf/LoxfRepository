@@ -3,18 +3,15 @@
  * luohj - 上午10:34:18
  * 
  */
-package org.loxf.registry.context;
+package org.loxf.core.context;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.loxf.registry.bean.Service;
-import org.loxf.registry.bean.ServletBean;
-import org.loxf.registry.utils.ExportUtil;
-import org.loxf.registry.utils.ServletUtil;
+import org.loxf.core.servlet.bean.ServletBean;
+import org.loxf.core.utils.ServletUtil;
 
 /**
  * 统一容器管理工具
@@ -69,11 +66,6 @@ public class ApplicationContext extends BaseContext {
 		return (T) getMap().get(servletKey);
 	}
 	
-	public void loadLocalService(String path){
-		Service[] services = parseService(path);
-		ApplicationContext.getInstance().setLocalBeans(services);
-	}
-	
 	public void loadServlet(String path){
 		List<ServletBean> servletList = ServletUtil.parse(path);
 		for(ServletBean servlet : servletList){
@@ -83,15 +75,5 @@ public class ApplicationContext extends BaseContext {
 				methodPathMapServlet.put(key, c.getName());
 			}
 		}
-	}
-	
-	Service[] parseService(String path) {
-		try {
-			return ExportUtil.parse(path);
-		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
-		}
-		return null;
 	}
 }

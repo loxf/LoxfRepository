@@ -15,23 +15,27 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
+import org.loxf.core.context.ApplicationContext;
+import org.loxf.core.interfaces.IBaseService;
+import org.loxf.core.transcation.bean.Transaction;
+import org.loxf.core.transcation.bean.TransactionResult;
+import org.loxf.core.transcation.oper.TransactionOper;
+import org.loxf.core.utils.CommonUtil;
+import org.loxf.core.utils.ComputerInfoUtil;
+import org.loxf.core.utils.MapCastList;
+import org.loxf.core.utils.PropertiesUtil;
 import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Client;
 import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
-import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ProviderListener;
 import org.loxf.registry.queue.UploadServiceQueue;
 import org.loxf.registry.thread.ServerHeartBeatThread;
 import org.loxf.registry.thread.UploadServiceThread;
-import org.loxf.registry.utils.CommonUtil;
-import org.loxf.registry.utils.ComputerInfoUtil;
 import org.loxf.registry.utils.ExportUtil;
-import org.loxf.registry.utils.MapCastList;
-import org.loxf.registry.utils.PropertiesUtil;
 
 /**
  * @author luohj
@@ -154,11 +158,13 @@ public class ProviderManager implements IProviderManager {
 	 * @throws InvocationTargetException
 	 * @throws IllegalArgumentException
 	 * @throws IllegalAccessException
+	 * @throws NoSuchMethodException 
+	 * @throws InstantiationException 
 	 * @see org.loxf.registry.main.IProviderManager#call(org.loxf.registry.invocation.Invocation)
 	 */
 	@Override
 	public Object call(final Invocation invo)
-			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException {
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, NoSuchMethodException, InstantiationException {
 		// 异步执行服务调用的客户端信息
 		String key = invo.getInterfaces().getName()
 				+ (StringUtils.isBlank(invo.getGroup()) ? "" : ":" + invo.getGroup()).toString();
@@ -214,9 +220,9 @@ public class ProviderManager implements IProviderManager {
 		}).start();
 		// 反射调用方法
 		java.lang.reflect.Method m = null;
-		Object result = null;
+		TransactionResult result = new TransactionResult();
 		try {
-			
+			TransactionOper proxyTrans = new TransactionOper();
 			if(invo.isAsyn()){
 				// TODO 异步调用 feature调用
 			} else {
@@ -224,14 +230,24 @@ public class ProviderManager implements IProviderManager {
 				// TODO 超时打断 invo.getTimeout();
 				m = Class.forName(service.getInterfaces()).getMethod(invo.getMethod().getName(),
 						invo.getMethod().getParameterTypes());
-				result = m.invoke(Class.forName(service.getImplClazz()).newInstance(), invo.getParams());
+				IBaseService o = (IBaseService)Class.forName(service.getImplClazz()).newInstance();
+				Transaction tr = invo.getTransaction();
+				o.setTransaction(tr);
+				proxyTrans.openTransaction(tr);
+				o.init();
+				Object value = m.invoke(o, invo.getParams());
+				result.setValue(value);
+				result.setTr(o.getTransaction());
 			}
 		} catch (NoSuchMethodException e) {
 			e.printStackTrace();
+			throw e;
 		} catch (SecurityException e) {
 			e.printStackTrace();
+			throw e;
 		} catch (InstantiationException e) {
 			e.printStackTrace();
+			throw e;
 		}
 		return result;
 

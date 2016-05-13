@@ -12,9 +12,9 @@ import java.util.Properties;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.loxf.core.utils.PropertiesUtil;
 import org.loxf.registry.main.ClientManager;
 import org.loxf.registry.main.IClientManager;
-import org.loxf.registry.utils.PropertiesUtil;
 
 /**
  * @author luohj
@@ -38,8 +38,10 @@ public class CustomerListen implements ServletContextListener {
 			if(!mgr.isReady()){
 				mgr.init(p);
 				mgr.start();
+				while(!mgr.isReady()){
+					System.out.println("CustomerListen init succ!");
+				}
 			}
-			System.out.println("CustomerListen init succ!");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

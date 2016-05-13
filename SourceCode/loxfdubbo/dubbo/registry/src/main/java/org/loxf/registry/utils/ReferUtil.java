@@ -7,9 +7,8 @@ package org.loxf.registry.utils;
 
 import java.lang.reflect.Field;
 
-import org.apache.commons.lang.StringUtils;
+import org.loxf.core.transcation.bean.Transaction;
 import org.loxf.registry.annotation.Customer;
-import org.loxf.registry.context.ApplicationContext;
 import org.loxf.registry.main.ClientManager;
 import org.loxf.registry.main.IClientManager;
 
@@ -18,16 +17,8 @@ import org.loxf.registry.main.IClientManager;
  *
  */
 public class ReferUtil {
-	public static void refer(Object o){
-		ApplicationContext ctx = ApplicationContext.getInstance();
+	public static void referInAction(Object o){
 		IClientManager mgr = ClientManager.getClientManager();
-		while(!mgr.isReady()){
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 		// 解析
 		// List<Map<String, ?>> list = ReferUtil.parse(o.getClass());
 		try {
@@ -36,17 +27,31 @@ public class ReferUtil {
 			for (Field f : fields) {
 				if (f != null && f.isAnnotationPresent(Customer.class)) {
 					Customer refer = f.getAnnotation(Customer.class);
-					String group = refer.group();
-					Class<?> interfaces = f.getType();
-					String key = interfaces.toString()
-							+ (StringUtils.isEmpty(group) ? "" : ":" + group);
-					if (!ctx.isExistsBean(key))
-						ctx.setBean(key, mgr.refer((Class<?>) interfaces, group, refer.asyn(), refer.jvm()));
-					
 					// 允许访问private字段
 					f.setAccessible(true);
 					// 把引用对象注入属性
-					f.set(o, ctx.getBean(key));
+					f.set(o, mgr.refer(f.getType(), refer, new Transaction()));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void referInService(Object o, Transaction tr){
+		IClientManager mgr = ClientManager.getClientManager();
+		// 解析
+		// List<Map<String, ?>> list = ReferUtil.parse(o.getClass());
+		try {
+			// 获取其全部的字段描述
+			Field[] fields = o.getClass().getDeclaredFields();
+			for (Field f : fields) {
+				if (f != null && f.isAnnotationPresent(Customer.class)) {
+					Customer refer = f.getAnnotation(Customer.class);
+					// 允许访问private字段
+					f.setAccessible(true);
+					// 把引用对象注入属性
+					f.set(o, mgr.refer(f.getType(), refer, tr, false));
 				}
 			}
 		} catch (Exception e) {

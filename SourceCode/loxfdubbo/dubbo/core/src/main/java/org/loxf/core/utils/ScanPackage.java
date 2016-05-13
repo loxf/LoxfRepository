@@ -3,7 +3,7 @@
  * luohj - 下午12:03:33
  * 
  */
-package org.loxf.registry.utils;
+package org.loxf.core.utils;
 
 import java.io.File;
 import java.io.FileFilter;

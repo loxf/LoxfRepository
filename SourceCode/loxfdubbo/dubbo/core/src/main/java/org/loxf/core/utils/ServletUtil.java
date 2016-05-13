@@ -3,7 +3,7 @@
  * luohj - 下午7:04:03
  * 
  */
-package org.loxf.registry.utils;
+package org.loxf.core.utils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -12,9 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import org.loxf.registry.annotation.Controller;
-import org.loxf.registry.annotation.RequestMapping;
-import org.loxf.registry.bean.ServletBean;
+import org.loxf.core.servlet.anno.Controller;
+import org.loxf.core.servlet.anno.RequestMapping;
+import org.loxf.core.servlet.bean.ServletBean;
 
 /**
  * @author luohj

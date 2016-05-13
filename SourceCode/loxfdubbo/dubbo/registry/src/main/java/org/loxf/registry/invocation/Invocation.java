@@ -2,6 +2,7 @@ package org.loxf.registry.invocation;
 
 import java.util.Arrays;
 
+import org.loxf.core.transcation.bean.Transaction;
 import org.loxf.registry.bean.BaseBean;
 
 public class Invocation extends BaseBean{
@@ -20,7 +21,23 @@ public class Invocation extends BaseBean{
 	private int port;
 	private int timeout;
 	private boolean asyn;
+	/**
+	 * 事务
+	 */
+	private Transaction tr;
 	
+	/**
+	 * @return the tr
+	 */
+	public Transaction getTransaction() {
+		return tr;
+	}
+	/**
+	 * @param tr the tr to set
+	 */
+	public void setTransaction(Transaction tr) {
+		this.tr = tr;
+	}
 	/**
 	 * @return the result
 	 */
