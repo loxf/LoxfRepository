@@ -9,10 +9,5 @@ package org.loxf.core.interfaces;
  * @author luohj
  *
  */
-public interface IBaseService extends IBase {
-	/**
-	 * 初始化
-	 * @author:luohj
-	 */
-	public void init();
+public interface IBaseService extends IBaseTransactionService {
 }

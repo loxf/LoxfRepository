@@ -30,7 +30,7 @@ public class ReferUtil {
 					// 允许访问private字段
 					f.setAccessible(true);
 					// 把引用对象注入属性
-					f.set(o, mgr.refer(f.getType(), refer, new Transaction()));
+					f.set(o, mgr.refer(f.getType(), refer, null));
 				}
 			}
 		} catch (Exception e) {

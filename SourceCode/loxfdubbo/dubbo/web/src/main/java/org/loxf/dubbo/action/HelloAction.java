@@ -32,9 +32,9 @@ public class HelloAction extends BaseAction {
 	
 	@Customer
 	private IHello hello;
-	@Customer(group = "WhoBoy", timeout=5000)
+	@Customer(group = "WhoBoy")
 	protected IWho whoBoy;
-	@Customer(group = "WhoGirl", timeout=5000)
+	@Customer(group = "WhoGirl")
 	public IWho whoGirl;
 
 	@RequestMapping("/app/hello")
