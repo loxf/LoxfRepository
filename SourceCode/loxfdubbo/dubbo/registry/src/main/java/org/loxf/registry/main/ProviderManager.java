@@ -36,6 +36,7 @@ import org.loxf.registry.queue.UploadServiceQueue;
 import org.loxf.registry.thread.ServerHeartBeatThread;
 import org.loxf.registry.thread.UploadServiceThread;
 import org.loxf.registry.utils.ExportUtil;
+import org.loxf.registry.utils.ReferUtil;
 
 /**
  * @author luohj
@@ -230,11 +231,22 @@ public class ProviderManager implements IProviderManager {
 				// TODO 超时打断 invo.getTimeout();
 				m = Class.forName(service.getInterfaces()).getMethod(invo.getMethod().getName(),
 						invo.getMethod().getParameterTypes());
+				
+				String curr = key + "-" + m.getName() + "(";
+				int i = 0;
+				for(Class<?> cl : m.getParameterTypes()){
+					if(i++==0){
+						curr += cl.getName();
+					} else {
+						curr += ", " + cl.getName() ;
+					}
+				}
+				curr += ")";
+				
 				IBaseService o = (IBaseService)Class.forName(service.getImplClazz()).newInstance();
 				Transaction tr = invo.getTransaction();
-				o.setTransaction(tr);
-				proxyTrans.openTransaction(tr);
-				o.init();
+				proxyTrans.deal(o, tr, curr);
+				ReferUtil.referInService(o, o.getTransaction());
 				Object value = m.invoke(o, invo.getParams());
 				result.setValue(value);
 				result.setTr(o.getTransaction());

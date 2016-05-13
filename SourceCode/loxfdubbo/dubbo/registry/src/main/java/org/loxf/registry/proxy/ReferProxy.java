@@ -30,6 +30,7 @@ import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.main.IClientManager;
 import org.loxf.registry.utils.LoadBalanceUtil;
 import org.loxf.registry.utils.MonitorUtil;
+import org.loxf.registry.utils.ReferUtil;
 
 /**
  * @author luohj
@@ -96,25 +97,27 @@ public class ReferProxy implements InvocationHandler {
 			}
 		}
 		curr += ")";
-		if(isNewTr){
+		if(isNewTr && tr!=null){
 			proxyTrans.setStart(tr, curr); 
 			proxyTrans.setEnd(tr, curr); 
+			proxyTrans.openTransaction(tr);
 		}
 		proxyMonitor.beforeRefer();
 		if (conf.jvm()) {
 			if (ApplicationContext.getInstance().isExistsBean(key + ":jvm")) {
 				IBaseService o = (IBaseService) Class.forName(service.getImplClazz()).newInstance();
-				o.setTransaction(tr);
-				proxyTrans.openTransaction(tr);
-				o.init();
+				proxyTrans.deal(o, tr, curr);
+				ReferUtil.referInService(o, o.getTransaction());
 				Object result = method.invoke(o, arguments);
 				if (result instanceof Throwable) {
+					proxyTrans.rollBack(tr);
 					throw (Throwable) result;
 				}
 				proxyMonitor.afterRefer();
-				tr = o.getTransaction();
-				if(curr.equals(proxyTrans.getEnd(tr))){
-					proxyTrans.commit(tr);
+				if(o.getTransaction()!=null){
+					if(curr.equals(o.getTransaction().getEnd())){
+						proxyTrans.commit(o.getTransaction());
+					}
 				}
 				return result;
 			}
@@ -172,7 +175,7 @@ public class ReferProxy implements InvocationHandler {
 						} else if(result instanceof TransactionResult){
 							value = ((TransactionResult) result).getValue();
 							Transaction transaction = ((TransactionResult) result).getTr();
-							if(transaction.getEnd().equals(curr)){
+							if(transaction!=null && transaction.getEnd().equals(curr)){
 								proxyTrans.commit(tr);
 							}
 						} else {

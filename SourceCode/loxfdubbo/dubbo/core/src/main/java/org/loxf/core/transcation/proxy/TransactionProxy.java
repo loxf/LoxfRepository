@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import org.loxf.core.interfaces.IBase;
+import org.loxf.core.interfaces.IBaseTransactionService;
 import org.loxf.core.transcation.bean.Transaction;
 import org.loxf.core.transcation.oper.TransactionOper;
 
@@ -43,7 +43,7 @@ public class TransactionProxy implements InvocationHandler {
 	 */
 	@Override
 	public Object invoke(Object object, Method method, Object[] arguments) throws Throwable {
-		Transaction tr = ((IBase)object).getTransaction();
+		Transaction tr = ((IBaseTransactionService)object).getTransaction();
 		if(tr==null){
 			tr = new Transaction();
 		}

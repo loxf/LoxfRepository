@@ -7,6 +7,7 @@ package org.loxf.service.impl;
 
 import org.loxf.api.demo.IHello;
 import org.loxf.api.demo.IWho;
+import org.loxf.core.transcation.annotation.Transactional;
 import org.loxf.registry.annotation.Customer;
 import org.loxf.registry.annotation.Method;
 import org.loxf.registry.annotation.Provider;
@@ -17,9 +18,10 @@ import org.loxf.registry.service.BaseService;
  *
  */
 @Provider(interfaces = IWho.class, group = "WhoBoy")
+@Transactional
 public class WhoBoy extends BaseService implements IWho {
 
-	@Customer
+	@Customer(jvm=true)
 	private IHello hello;
 	
 	/** (non-Javadoc)
