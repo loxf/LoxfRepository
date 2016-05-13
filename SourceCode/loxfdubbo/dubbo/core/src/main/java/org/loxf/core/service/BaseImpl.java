@@ -1,6 +1,7 @@
 package org.loxf.core.service;
 
 import org.loxf.core.interfaces.IBase;
+import org.loxf.core.transcation.bean.Transaction;
 
 /**
  * BaseImpl.java
@@ -13,5 +14,19 @@ import org.loxf.core.interfaces.IBase;
  *
  */
 public class BaseImpl implements IBase {
+	private Transaction tr;
 
+	/**
+	 * @return the tr
+	 */
+	public Transaction getTransaction() {
+		return tr;
+	}
+
+	/**
+	 * @param tr the tr to set
+	 */
+	public void setTransaction(Transaction tr) {
+		this.tr = tr;
+	}
 }

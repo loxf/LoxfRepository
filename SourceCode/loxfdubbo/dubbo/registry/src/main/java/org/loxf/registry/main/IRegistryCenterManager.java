@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.loxf.registry.bean.AliveClient;
+import org.loxf.registry.bean.Client;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 

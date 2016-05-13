@@ -44,7 +44,8 @@ public class Server extends BaseBean {
 	 * return serverAddr:serverPort
 	 */
 	public String toString() {
-		return new StringBuffer().append(this.serverAddr).append(":").append(this.serverPort).toString();
+		return new StringBuffer().append(this.serverAddr).append(":").append(this.serverPort).append("[")
+				.append(serverName).append("]").toString();
 	}
 	
 	public boolean equals(Object o){

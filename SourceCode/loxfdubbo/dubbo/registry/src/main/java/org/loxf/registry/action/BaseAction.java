@@ -1,6 +1,6 @@
 /**
- * BaseRefer.java
- * luohj - 下午5:27:29
+ * BaseAction.java
+ * luohj - 上午11:11:07
  * 
  */
 package org.loxf.registry.action;
@@ -11,8 +11,13 @@ import org.loxf.registry.utils.ReferUtil;
  * @author luohj
  *
  */
-public class BaseRefer {
-	public BaseRefer(){
+public class BaseAction implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	public BaseAction(){
 		instancesBean(this);
 	}
 	/**
@@ -22,7 +27,6 @@ public class BaseRefer {
 	 * @author:luohj
 	 */
 	protected void instancesBean(Object o) {
-		ReferUtil.refer(o);
+		ReferUtil.referInAction(o);
 	}
-
 }

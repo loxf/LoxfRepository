@@ -8,6 +8,9 @@ package org.loxf.registry.main;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.loxf.core.transcation.bean.Transaction;
+import org.loxf.registry.annotation.Customer;
+import org.loxf.registry.bean.AliveClient;
 import org.loxf.registry.bean.Service;
 
 /**
@@ -27,12 +30,24 @@ public interface IClientManager {
 	/**
 	 * 引用服务（单个服务）
 	 * @param interfaces
-	 * @param group
-	 * @param asyn
+	 * @param referConfig
+	 * @param tr
 	 * @return
-	 * @author: luohj
+	 * @author:luohj
 	 */
-	<T> T refer(final Class<T> interfaces, final String group, final boolean asyn, final boolean jvm);
+	<T> T refer(final Class<?> interfaces, final Customer referConfig, Transaction tr) throws Exception;
+	/**
+	 * 引用服务（单个服务）
+	 * @param interfaceClass
+	 * @param referConf
+	 * @param tr
+	 * @param newTr
+	 * @return
+	 * @throws Exception
+	 * @author:luohj
+	 */
+	<T> T refer(final Class<T> interfaceClass, final Customer referConf, Transaction tr, boolean newTr)
+			throws Exception;
 	/**
 	 * 更新services
 	 * @author:luohj
@@ -54,4 +69,24 @@ public interface IClientManager {
 	 * @author:luohj
 	 */
 	public boolean isReady();
+	/**
+	 * 根据key获取Service
+	 * 
+	 * @param key
+	 * @return
+	 * @author:luohj
+	 */
+	public Service getService(String key);
+	/**
+	 * 获取客户端负载均衡总配置
+	 * @return
+	 * @author:luohj
+	 */
+	public String getPollingType();
+	/**
+	 * 获取客户端信息
+	 * @return
+	 * @author:luohj
+	 */
+	public AliveClient getClient();
 }

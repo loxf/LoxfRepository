@@ -8,6 +8,8 @@ package org.loxf.service;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import org.loxf.registry.main.ClientManager;
+import org.loxf.registry.main.IClientManager;
 import org.loxf.registry.main.IProviderManager;
 import org.loxf.registry.main.ProviderManager;
 
@@ -30,9 +32,15 @@ public class ExportTest {
 	 */
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
-		IProviderManager mgr = ProviderManager.getProviderManager();
-		mgr.init("org/loxf/service/product.properties");
-		mgr.start();
+		// 暴露服务 启用生产者
+		IProviderManager serverMgr = ProviderManager.getProviderManager();
+		serverMgr.init("org/loxf/service/product.properties");
+		serverMgr.start();
+		
+		// 获取服务 启用消费者
+		IClientManager clientMgr = ClientManager.getClientManager();
+		clientMgr.init("org/loxf/service/customer.properties");
+		clientMgr.start();
 	}
 
 }

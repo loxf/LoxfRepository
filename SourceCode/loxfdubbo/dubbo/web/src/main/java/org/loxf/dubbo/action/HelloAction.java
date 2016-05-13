@@ -15,6 +15,7 @@ import org.loxf.api.demo.IHello;
 import org.loxf.api.demo.IWho;
 import org.loxf.core.servlet.anno.Controller;
 import org.loxf.core.servlet.anno.RequestMapping;
+import org.loxf.registry.action.BaseAction;
 import org.loxf.registry.annotation.Customer;
 
 /**

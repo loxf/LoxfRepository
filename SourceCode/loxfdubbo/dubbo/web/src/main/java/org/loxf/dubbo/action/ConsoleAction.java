@@ -6,6 +6,7 @@
 package org.loxf.dubbo.action;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +18,9 @@ import org.apache.commons.lang.StringUtils;
 import org.loxf.core.servlet.anno.Controller;
 import org.loxf.core.servlet.anno.RequestMapping;
 import org.loxf.core.utils.MapCastList;
+import org.loxf.registry.action.BaseAction;
 import org.loxf.registry.bean.AliveClient;
+import org.loxf.registry.bean.Client;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
 import org.loxf.registry.main.IRegistryCenterManager;
@@ -40,7 +43,24 @@ public class ConsoleAction extends BaseAction {
 	@RequestMapping("/console/getService")
 	public List<Service> getService(HttpServletRequest request, HttpServletResponse response){
 		Map<String, Service> servicesMap = mgr.getServices();
-		return (List<Service>)MapCastList.convert(servicesMap);
+		List<Service> serviceList = (List<Service>)MapCastList.convert(servicesMap);
+		if(serviceList==null || serviceList.size()==0){
+			return null;
+		}
+		Map<String, AliveClient> aliveMap = mgr.getAliveClients();
+		for(Service service : serviceList){
+			HashMap<String, Client> realClient = new HashMap<String, Client>();
+			List<Client> cilentList = (List<Client>)MapCastList.convert(service.getClients());
+			if(cilentList!=null){
+				for(Client client : cilentList){
+					if(aliveMap.containsKey(client.toString())){
+						realClient.put(client.toString(), client);
+					}
+				}
+			}
+			service.setClients(realClient);
+		}
+		return serviceList;
 	}
 	
 	@SuppressWarnings("unchecked")

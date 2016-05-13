@@ -8,6 +8,7 @@ package org.loxf.registry.thread;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -87,7 +88,7 @@ public class UploadServiceThread {
 										out.close();
 									}
 									queue.clear();
-								} catch (UnknownHostException e) {
+								} catch (UnknownHostException |ConnectException e) {
 									e.printStackTrace();
 								} catch (IOException e) {
 									e.printStackTrace();

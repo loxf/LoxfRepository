@@ -5,13 +5,13 @@
  */
 package org.loxf.api.demo;
 
-import org.loxf.core.interfaces.IBase;
+import org.loxf.core.interfaces.IBaseService;
 
 /**
  * @author lenovo
  *
  */
-public interface IWho extends IBase {
+public interface IWho extends IBaseService {
 	String who();
 	String iam(String name);
 }

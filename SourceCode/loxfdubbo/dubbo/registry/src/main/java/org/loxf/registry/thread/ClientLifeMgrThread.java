@@ -48,9 +48,7 @@ public class ClientLifeMgrThread {
 						AliveClient client = aliveClients.get(key);
 						if (new Date().getTime() - client.getLastModifyDate().getTime() > client.getTimeout()) {
 							if(client.getType().equals("SERV")){
-								Server server = new Server();
-								server.setServerAddr(client.getIp());
-								server.setServerPort(client.getPort());
+								Server server = new Server(client.getIp(), client.getPort());
 								serverManager.stopServer(server, false);
 							}
 							needDel.put(key, key);

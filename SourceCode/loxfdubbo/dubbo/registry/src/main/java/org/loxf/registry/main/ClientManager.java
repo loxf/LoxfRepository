@@ -8,8 +8,6 @@ package org.loxf.registry.main;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -20,21 +18,19 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
-import org.loxf.core.context.ApplicationContext;
+import org.loxf.core.transcation.bean.Transaction;
 import org.loxf.core.utils.CommonUtil;
 import org.loxf.core.utils.ComputerInfoUtil;
-import org.loxf.core.utils.MapCastList;
 import org.loxf.core.utils.PropertiesUtil;
+import org.loxf.registry.annotation.Customer;
 import org.loxf.registry.bean.AliveClient;
-import org.loxf.registry.bean.Method;
 import org.loxf.registry.bean.RegistryCenter;
 import org.loxf.registry.bean.Server;
 import org.loxf.registry.bean.Service;
-import org.loxf.registry.constracts.PollingType;
-import org.loxf.registry.invocation.Invocation;
 import org.loxf.registry.listener.ClientListener;
+import org.loxf.registry.proxy.ReferProxy;
 import org.loxf.registry.thread.ClientHeartBeatThread;
-import org.loxf.registry.utils.LoadBalanceUtil;
+import org.loxf.registry.utils.MonitorUtil;
 
 /**
  * 消费端管理中心 
@@ -136,14 +132,11 @@ public class ClientManager implements IClientManager {
 	 * @see org.loxf.registry.main.IClientManager#refer(java.lang.Class,
 	 *      java.lang.String)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T refer(Class<T> interfaces, String group, boolean asyn, boolean jvm) {
-		try {
-			return refer(interfaces, group, client, asyn, jvm);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
+	public <T> T refer(Class<?> interfaces, Customer referConf, Transaction tr) 
+			throws Exception {
+		return (T) refer(interfaces, referConf, tr, true);
 	}
 	
 	/**
@@ -153,123 +146,25 @@ public class ClientManager implements IClientManager {
 	 *            接口泛型
 	 * @param interfaceClass
 	 *            接口类型
-	 * @param group
-	 *            分组，用于区分一个接口多个实现
-	 * @param server
-	 *            服务端信息
-	 * @param AliveClient
-	 *            客户端信息
-	 * @param asyn
-	 *            是否同步
+	 * @param referConf
+	 *            消费端配置
+	 * @param tr
+	 *            事务
+	 * @param newTr
+	 *            是否新事务
+	 *            
 	 * @return 远程服务
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unchecked")
-	<T> T refer(final Class<T> interfaceClass, final String group, final AliveClient client, final boolean asyn, final boolean jvm)
+	@Override
+	public <T> T refer(final Class<T> interfaceClass, final Customer referConf, Transaction tr, boolean newTr)
 			throws Exception {
 		if (interfaceClass == null)
 			throw new IllegalArgumentException("Interface class == null");
 		if (!interfaceClass.isInterface())
 			throw new IllegalArgumentException("The " + interfaceClass.getName() + " must be interface class!");
 		System.out.println("Refer service " + interfaceClass.getName() + " success. ");
-		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class<?>[] { interfaceClass },
-				new InvocationHandler() {
-					public Object invoke(Object proxy, java.lang.reflect.Method method, Object[] arguments) throws Throwable {
-						String key = interfaceClass.getName() + (StringUtils.isEmpty(group) ? "" : ":" + group);
-						Service service = getService(key);
-						if(service==null){
-							throw new RuntimeException("未找到当前service的定义！"+ key);
-						}
-						if(jvm){
-							if(ApplicationContext.getInstance().isExistsBean(key+":jvm")){
-								Object result = method.invoke(Class.forName(service.getImplClazz()).newInstance(), arguments);
-								if (result instanceof Throwable) {
-									throw (Throwable) result;
-								}
-								return result;
-							}
-						} 
-						// 负载均衡算法，方法级>服务级>客户端总定义
-						String polling = StringUtils.isEmpty(service.getPollingType()) ? pollingType : service.getPollingType();
-						HashMap<String,Method> ms = service.getMethod();
-						int timeout = 0;
-						if(ms!=null){
-							String[] param = new String[method.getParameterTypes().length];
-							int i = 0;
-							for(Class<?> c : method.getParameterTypes()){
-								param[i++] = c.getName();
-							}
-							Method mth = ms.get(new StringBuffer().append(method.getName()).append("(").append(StringUtils.join(param, " ,")).append(")")
-									.toString());
-							if(mth!=null&&!StringUtils.isEmpty(mth.getPollingType())){
-								polling = mth.getPollingType();
-								timeout = mth.getTimeout();
-							}
-						}
-						// 获取所有服务端
-						List<Server> servers = getServerListByServiceKey(key, service);
-						while(!servers.isEmpty()){
-							Server server = loadBalancingServer(polling, servers);
-							if (server.getServerAddr() == null || server.getServerAddr().length() == 0)
-								throw new IllegalArgumentException("Host == null!");
-							if (server.getServerPort() <= 0 || server.getServerPort() > 65535)
-								throw new IllegalArgumentException("Invalid port " + server.getServerPort());
-							System.out.println("Get remote service " + interfaceClass.getName() + " from server "
-									+ server.getServerAddr() + ":" + server.getServerPort());
-							Socket socket = null;
-							try {
-								socket = new Socket(server.getServerAddr(), server.getServerPort());
-								ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
-								try {
-									/**
-									 * 协议 in{Invocation invo} out{Object result}
-									 */
-									Invocation invo = new Invocation();
-									invo.setInterfaces(interfaceClass);
-									invo.setGroup(group);
-									org.loxf.registry.invocation.Method m = new org.loxf.registry.invocation.Method();
-									m.setName(method.getName());
-									m.setParameterTypes(method.getParameterTypes());
-									invo.setMethod(m);
-									invo.setParams(arguments);
-									invo.setAppName(client.getAppName());
-									invo.setAsyn(asyn);
-									invo.setIp(client.getIp());
-									invo.setPort(client.getPort());
-									if(timeout<=0){
-										timeout = service.getTimeout()>0 ?  service.getTimeout(): client.getTimeout();
-									}
-									invo.setTimeout(timeout);
-									
-									output.writeObject(invo);
-									ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
-									try {
-										Object result = input.readObject();
-										// TODO 处理异步的情况 else if instanceof Feature
-										if (result instanceof Throwable) {
-											throw (Throwable) result;
-										}
-										return result;
-									} finally{
-										input.close();
-									}
-								} finally {
-									output.close();
-								}
-							} catch (UnknownHostException e) {
-								servers.remove(server);
-								e.printStackTrace();
-							} catch (ConnectException e) {
-								servers.remove(server);
-								e.printStackTrace();
-							} finally {
-								if(socket!=null)
-									socket.close();
-							}
-						}
-						return null;
-					}
-				});
+		return new ReferProxy().bind(interfaceClass, new MonitorUtil(interfaceClass, true), mgr, referConf, tr, newTr);
 	}
 
 	/**
@@ -316,8 +211,8 @@ public class ClientManager implements IClientManager {
 		}
 		while(!mgr.isReady()){
 			Date end = new Date();
-			if(end.getTime() - start.getTime()>30000l){
-				throw new RuntimeException("启动消费端监听超时：30S... 请检查注册中心是否正常。");
+			if(end.getTime() - start.getTime()>60000l){
+				throw new RuntimeException("启动消费端监听超时：60S... 请检查注册中心是否正常。");
 			}
 			try {
 				Thread.sleep(2000);
@@ -477,49 +372,19 @@ public class ClientManager implements IClientManager {
 		HashMap<String, Server> services = service.getServers();
 		return (List<Server>) services.values();
 	}
-
+	
 	/**
-	 * 软负载获取服务端信息
-	 * 
-	 * @param list
-	 * @return
-	 * @author:luohj
+	 * @return the pollingType
 	 */
-	public Server loadBalancingServer(List<Server> list, String pollingType) {
-		if (pollingType.equals(PollingType.RANDOM)) {
-			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
-		} else if (pollingType.equals(PollingType.DYNC_POLLING)) {
-			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
-		} else if (pollingType.equals(PollingType.MIN_CONNECTION)) {
-			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
-		} else if (pollingType.equals(PollingType.OBSERVATION)) {
-			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
-		} else if (pollingType.equals(PollingType.POLLING)) {
-			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
-		} else if (pollingType.equals(PollingType.PREDICTION)) {
-			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
-		} else if (pollingType.equals(PollingType.WRR)) {
-			return (Server) LoadBalanceUtil.getTByRandom(list, pollingType);
-		}
-		return null;
+	public String getPollingType() {
+		return pollingType;
 	}
 	/**
-	 * 软负载获取服务端信息
-	 * 
-	 * @param list
-	 * @return
-	 * @author:luohj
+	 * @param pollingType the pollingType to set
 	 */
-	public Server loadBalancingServer(String polling, List<Server> servers) {
-		return loadBalancingServer(servers, polling);
+	public void setPollingType(String pollingType) {
+		this.pollingType = pollingType;
 	}
-	
-	@SuppressWarnings("unchecked")
-	public List<Server> getServerListByServiceKey(String key, Service service){
-		HashMap<String, Server> servers = service.getServers();
-		return (List<Server>) MapCastList.convert(servers);
-	}
-	
 	public static void main(String args[]){
 		IClientManager mgr = ClientManager.getClientManager();
 		mgr.start();
